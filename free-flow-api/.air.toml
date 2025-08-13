@@ -1,0 +1,17 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/app/server.exe ./cmd"
+bin = "tmp/app/server.exe"
+include_ext = ["go"]
+exclude_dir = ["tmp","vendor"]
+
+[color]
+build = "yellow"
+main = "magenta"
+runner = "green"
+watcher = "cyan"
+
+[misc]
+clean_on_exit = true # Delete tmp directory on exit
