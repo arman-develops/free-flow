@@ -1,15 +1,15 @@
 package main
 
-import "fmt"
+import "github.com/gin-gonic/gin"
 
 func main() {
 	r := gin.Default()
 
-	r.get("/", func (c *gin.Context) {
+	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Welcome to free-flow api"
+			"message": "Welcome to free-flow api",
 		})
 	})
 
-	r.run()
+	r.Run()
 }
