@@ -2,6 +2,7 @@ package main
 
 import (
 	"free-flow-api/config"
+	"free-flow-api/controllers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,8 @@ func main() {
 			"message": "Welcome to free-flow api",
 		})
 	})
+
+	r.POST("/signup", controllers.Signup)
 
 	r.Run()
 }
