@@ -1,6 +1,14 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"free-flow-api/config"
+
+	"github.com/gin-gonic/gin"
+)
+
+func init() {
+	config.LoadEnv()
+}
 
 func main() {
 	r := gin.Default()
