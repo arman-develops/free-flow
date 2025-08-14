@@ -19,6 +19,11 @@ type SignupInput struct {
 	Password  string `json:"password" binding:"required,min=6,max=64"`
 }
 
+type LoginInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6,max=64"`
+}
+
 func Signup(c *gin.Context) {
 	// get firstname, lastname, email and password from the request body
 	var input SignupInput
@@ -68,6 +73,46 @@ func Signup(c *gin.Context) {
 
 	//send 201 code
 	c.JSON(http.StatusCreated, gin.H{
+		"user": gin.H{
+			"id":    user.ID,
+			"email": user.Email,
+		},
+		"token": token,
+	})
+}
+
+func Login(c *gin.Context) {
+	// get email and password from request body
+	var input LoginInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
+
+	// find existing user
+	var user models.User
+	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// compare password hash
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	//successfully login user
+	token, err := config.GenerateToken(user.ID.String(), 24*time.Hour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
+		return
+	}
+
+	// send back jwt token
+	c.JSON(http.StatusOK, gin.H{
 		"user": gin.H{
 			"id":    user.ID,
 			"email": user.Email,
