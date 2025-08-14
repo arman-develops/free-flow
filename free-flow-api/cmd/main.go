@@ -2,7 +2,7 @@ package main
 
 import (
 	"free-flow-api/config"
-	"free-flow-api/controllers"
+	"free-flow-api/routes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +21,11 @@ func main() {
 		})
 	})
 
-	r.POST("/signup", controllers.Signup)
-	r.POST("/login", controllers.Login)
+	api := r.Group("/api/v1")
+	{
+		routes.RegisterUserRouter(api)
+		routes.RegisterProtectedRouter(api)
+	}
 
 	r.Run()
 }
