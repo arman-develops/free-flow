@@ -21,8 +21,8 @@ type Associate struct {
 
 	Skills string `json:"skills"` // "design,frontend,backend"
 
-	User User `json:"-" gorm:"foreignKey:UserID"`
-	// Projects []Project `json:"projects" gorm:"many2many:project_associates;"`
+	User     User      `json:"-" gorm:"foreignKey:UserID"`
+	Projects []Project `json:"projects" gorm:"many2many:project_associates;"`
 }
 
 func (u *Associate) BeforeCreate(tx *gorm.DB) (err error) {

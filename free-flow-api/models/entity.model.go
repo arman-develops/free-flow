@@ -22,8 +22,8 @@ type Entity struct {
 	Email  string `json:"email"`
 	Phone  string `json:"phone"`
 
-	User User `json:"-" gorm:"foreignKey:UserID"`
-	// Projects []Project `json:"projects" gorm:"foreignKey:EntityID"`
+	User     User      `json:"-" gorm:"foreignKey:UserID"`
+	Projects []Project `json:"projects" gorm:"foreignKey:EntityID"`
 }
 
 func (u *Entity) BeforeCreate(tx *gorm.DB) (err error) {
