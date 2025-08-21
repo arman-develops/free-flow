@@ -36,6 +36,7 @@ func main() {
 	api := r.Group("/api/v1")
 	{
 		routes.RegisterUserRouter(api)
+		routes.RegisterEntityRouter(api)
 		routes.RegisterProtectedRouter(api)
 	}
 	log.Println("Server is up and runnig")

@@ -2,25 +2,19 @@ package models
 
 import (
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Entity struct {
-	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 
-	CompanyName string `json:"companyname" gorm:"size:100;not null"`
+	CompanyName string `json:"companyName" gorm:"size:100;not null"`
 	Contact     string `json:"contact"`
+	Email       string `json:"email"`
 
-	UserID uint   `json:"user_id" gorm:"not null"`
-	Name   string `json:"name" gorm:"not null"`
-	Email  string `json:"email"`
-	Phone  string `json:"phone"`
+	UserID uuid.UUID `json:"user_id" gorm:"not null"`
 
 	User     User      `json:"-" gorm:"foreignKey:UserID"`
 	Projects []Project `json:"projects" gorm:"foreignKey:EntityID"`

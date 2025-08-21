@@ -3,6 +3,7 @@ package main
 import (
 	"free-flow-api/config"
 	"free-flow-api/models"
+	"log"
 )
 
 func init() {
@@ -11,11 +12,14 @@ func init() {
 }
 
 func main() {
-	config.DB.AutoMigrate(
+	// config.DB.Migrator().DropTable(&models.Entity{})
+	if err := config.DB.AutoMigrate(
 		&models.User{},
 		&models.Entity{},
 		&models.Associate{},
 		&models.Project{},
 		&models.Task{},
-	)
+	); err != nil {
+		log.Fatalf("Migration failed: %v", err)
+	}
 }
