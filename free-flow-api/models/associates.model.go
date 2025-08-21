@@ -14,10 +14,10 @@ type Associate struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	UserID uint   `json:"user_id" gorm:"not null"`
-	Name   string `json:"name" gorm:"not null"`
-	Email  string `json:"email"`
-	Phone  string `json:"phone"`
+	UserID uuid.UUID `json:"user_id" gorm:"not null"`
+	Name   string    `json:"name" gorm:"not null"`
+	Email  string    `json:"email"`
+	Phone  string    `json:"phone"`
 
 	Skills string `json:"skills"` // "design,frontend,backend"
 

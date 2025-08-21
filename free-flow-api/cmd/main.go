@@ -38,6 +38,7 @@ func main() {
 		routes.RegisterUserRouter(api)
 		routes.RegisterEntityRouter(api)
 		routes.RegisterProtectedRouter(api)
+		routes.RegisterAssociateRouter(api)
 		routes.RegisterProjectRouter(api)
 	}
 	log.Println("Server is up and runnig")
