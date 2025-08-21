@@ -14,8 +14,8 @@ type Task struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	ProjectID uint   `json:"project_id" gorm:"not null"`
-	Title     string `json:"title" gorm:"not null"`
+	ProjectID uuid.UUID `json:"project_id" gorm:"not null"`
+	Title     string    `json:"title" gorm:"not null"`
 
 	Description string `json:"description"`
 	Status      string `json:"status" gorm:"default:'todo'"` // "todo", "in_progress", "review", "done"
@@ -30,7 +30,7 @@ type Task struct {
 	ActualHours    float64 `json:"actual_hours"`
 
 	// Assignment (for outsourced work)
-	AssignedToAssociate *uint `json:"assigned_to_associate"` // Foreign key to Associate
+	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate"` // Foreign key to Associate
 
 	// Relationships
 	Project   Project    `json:"-" gorm:"foreignKey:ProjectID"`
