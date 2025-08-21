@@ -12,7 +12,7 @@ func init() {
 }
 
 func main() {
-	// config.DB.Migrator().DropTable(&models.Entity{})
+	config.DB.Migrator().DropTable(&models.Project{})
 	if err := config.DB.AutoMigrate(
 		&models.User{},
 		&models.Entity{},
