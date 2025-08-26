@@ -30,6 +30,12 @@ func NewTask(c *gin.Context) {
 	//get user input
 	var input TaskInput
 
+	if !utils.ProjectExists(input.ProjectID.String()) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
 		return

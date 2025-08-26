@@ -36,6 +36,8 @@ func NewProject(c *gin.Context) {
 
 	if !utils.EntityExists(input.EntityID.String()) {
 		utils.SendErrorResponse(c, http.StatusBadRequest, "Entity ID is missing")
+		c.Abort()
+		return
 	}
 
 	//create new project
