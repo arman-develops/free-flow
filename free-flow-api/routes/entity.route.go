@@ -12,5 +12,6 @@ func RegisterEntityRouter(rg *gin.RouterGroup) {
 	entity.Use(middleware.VerifyToken())
 	{
 		entity.POST("/", controllers.NewEntity)
+		entity.GET("/", controllers.GetAllEntities)
 	}
 }
