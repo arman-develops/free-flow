@@ -99,3 +99,24 @@ func GetProjectByEntityID(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, http.StatusOK, projects)
 }
+
+func GetProjectByID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	projectID := c.Param("id")
+
+	var project models.Project
+	if err := config.DB.First(&project, "id = ?", projectID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Project Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, project)
+}
