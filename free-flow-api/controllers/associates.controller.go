@@ -53,3 +53,22 @@ func NewAssociate(c *gin.Context) {
 	}
 	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
+
+func GetAllAssociates(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	var allAssociates []models.Associate
+	if err := config.DB.Find(&allAssociates).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Associate Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, allAssociates)
+}

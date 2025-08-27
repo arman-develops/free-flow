@@ -12,5 +12,6 @@ func RegisterAssociateRouter(rg *gin.RouterGroup) {
 	associate.Use(middleware.VerifyToken())
 	{
 		associate.POST("/", controllers.NewAssociate)
+		associate.GET("/", controllers.GetAllAssociates)
 	}
 }
