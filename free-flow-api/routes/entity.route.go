@@ -13,5 +13,6 @@ func RegisterEntityRouter(rg *gin.RouterGroup) {
 	{
 		entity.POST("/", controllers.NewEntity)
 		entity.GET("/", controllers.GetAllEntities)
+		entity.GET("/:id", controllers.GetEntityByID)
 	}
 }

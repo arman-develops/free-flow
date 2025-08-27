@@ -72,3 +72,24 @@ func GetAllEntities(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, http.StatusOK, allEntities)
 }
+
+func GetEntityByID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	entityID := c.Param("id")
+
+	var entities []models.Entity
+	if err := config.DB.First(&entities, "id = ?", entityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "No Entity Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, entities)
+}
