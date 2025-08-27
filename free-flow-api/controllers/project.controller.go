@@ -71,10 +71,31 @@ func GetAllProjects(c *gin.Context) {
 
 	var allProjects []models.Project
 	if err := config.DB.Find(&allProjects).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusNotFound, "No Projects Found")
+		utils.SendErrorResponse(c, http.StatusNotFound, "Projects Not Found")
 		c.Abort()
 		return
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, allProjects)
+}
+
+func GetProjectByEntityID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	entityID := c.Param("id")
+
+	var projects []models.Project
+	if err := config.DB.Find(&projects, "entity_id = ?", entityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Project Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, projects)
 }
