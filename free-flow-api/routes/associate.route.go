@@ -13,5 +13,6 @@ func RegisterAssociateRouter(rg *gin.RouterGroup) {
 	{
 		associate.POST("/", controllers.NewAssociate)
 		associate.GET("/", controllers.GetAllAssociates)
+		associate.GET("/u", controllers.GetAllAssociatesByUserID)
 	}
 }
