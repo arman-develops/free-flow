@@ -12,5 +12,6 @@ func RegisterTaskRouter(rg *gin.RouterGroup) {
 	task.Use(middleware.VerifyToken())
 	{
 		task.POST("/", controllers.NewTask)
+		task.GET("/", controllers.GetAllTasks)
 	}
 }

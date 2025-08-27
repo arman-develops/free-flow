@@ -65,7 +65,7 @@ func GetAllAssociates(c *gin.Context) {
 
 	var allAssociates []models.Associate
 	if err := config.DB.Find(&allAssociates).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusNotFound, "Associate Not Found")
+		utils.SendErrorResponse(c, http.StatusNotFound, "Associates Not Found")
 		c.Abort()
 		return
 	}
@@ -84,7 +84,7 @@ func GetAllAssociatesByUserID(c *gin.Context) {
 
 	var allAssociates []models.Associate
 	if err := config.DB.Find(&allAssociates, "user_id = ?", userID).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusNotFound, "Associate Not Found")
+		utils.SendErrorResponse(c, http.StatusNotFound, "Associates Not Found")
 		c.Abort()
 		return
 	}
