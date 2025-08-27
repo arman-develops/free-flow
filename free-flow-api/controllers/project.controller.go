@@ -59,3 +59,22 @@ func NewProject(c *gin.Context) {
 	}
 	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
+
+func GetAllProjects(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	var allProjects []models.Project
+	if err := config.DB.Find(&allProjects).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "No Projects Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, allProjects)
+}

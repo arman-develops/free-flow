@@ -12,5 +12,6 @@ func RegisterProjectRouter(rg *gin.RouterGroup) {
 	project.Use(middleware.VerifyToken())
 	{
 		project.POST("/", controllers.NewProject)
+		project.GET("/", controllers.GetAllProjects)
 	}
 }
