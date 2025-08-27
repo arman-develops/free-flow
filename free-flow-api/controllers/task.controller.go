@@ -79,3 +79,24 @@ func GetAllTasks(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, http.StatusOK, allTasks)
 }
+
+func GetAllTasksByProjectID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	projectID := c.Param("id")
+
+	var allTasks []models.Task
+	if err := config.DB.Find(&allTasks, "project_id = ?", projectID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Tasks Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, allTasks)
+}
