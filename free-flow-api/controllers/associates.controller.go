@@ -91,3 +91,24 @@ func GetAllAssociatesByUserID(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, http.StatusOK, allAssociates)
 }
+
+func GetAssociateByID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	associateID := c.Param("id")
+
+	var associate models.Associate
+	if err := config.DB.First(&associate, "id = ?", associateID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Associates Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, associate)
+}
