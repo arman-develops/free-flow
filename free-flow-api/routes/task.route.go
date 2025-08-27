@@ -13,6 +13,7 @@ func RegisterTaskRouter(rg *gin.RouterGroup) {
 	{
 		task.POST("/", controllers.NewTask)
 		task.GET("/", controllers.GetAllTasks)
-		task.GET("/:id", controllers.GetAllTasksByProjectID)
+		task.GET("/:id", controllers.GetTasksByID)
+		task.GET("p/:id", controllers.GetAllTasksByProjectID)
 	}
 }
