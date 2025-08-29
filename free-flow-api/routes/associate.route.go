@@ -15,5 +15,7 @@ func RegisterAssociateRouter(rg *gin.RouterGroup) {
 		associate.GET("/", controllers.GetAllAssociates)
 		associate.GET("/u", controllers.GetAllAssociatesByUserID)
 		associate.GET("/:id", controllers.GetAssociateByID)
+		associate.DELETE("/:id", controllers.DeleteAssociate)
+		associate.PUT("/:id", controllers.UpdateAssociate)
 	}
 }

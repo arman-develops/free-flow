@@ -112,3 +112,84 @@ func GetAssociateByID(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, http.StatusOK, associate)
 }
+
+func UpdateAssociate(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	associateIDParam := c.Param("id")
+	associateID, err := uuid.Parse(associateIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid associate id")
+		return
+	}
+
+	var updates AssociateInput
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	var associate models.Associate
+	if err := config.DB.First(&associate, "id = ?", associateID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "associate not found")
+		return
+	}
+
+	if err := config.DB.First(&associate, "user_id = ?", userID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "access denied")
+		return
+	}
+
+	updates.Email = strings.ToLower(strings.TrimSpace(updates.Email))
+
+	if err := config.DB.Model(&associate).Updates(updates).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to update entity")
+		return
+	}
+
+	data := map[string]string{
+		"message": "Associate updated successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
+}
+
+func DeleteAssociate(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	associateIDParam := c.Param("id")
+	associateID, err := uuid.Parse(associateIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid associate id")
+		return
+	}
+
+	// 3. Find the entity
+	var associate models.Associate
+	if err := config.DB.First(&associate, "id = ?", associateID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "entity not found")
+		return
+	}
+
+	// 4. Soft delete (sets DeletedAt, doesn’t remove row)
+	if err := config.DB.Delete(&associate).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to delete entity")
+		return
+	}
+
+	data := map[string]string{
+		"message": "Associate deleted successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
+}

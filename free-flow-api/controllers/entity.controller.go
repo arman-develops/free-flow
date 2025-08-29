@@ -153,7 +153,7 @@ func UpdateEntity(c *gin.Context) {
 	}
 
 	data := map[string]string{
-		"message": "Entity updates successfully",
+		"message": "Entity updated successfully",
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, data)
