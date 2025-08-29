@@ -39,6 +39,7 @@ type Project struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
+	UserID   uuid.UUID `json:"user_id" gorm:"not null"`
 	EntityID uuid.UUID `json:"entity_id" gorm:"not null"`
 	Name     string    `json:"name" gorm:"not null"`
 
@@ -69,7 +70,8 @@ type Project struct {
 	// Relationships
 	Entity     Entity      `json:"entity" gorm:"foreignKey:EntityID"`
 	Associates []Associate `json:"associates" gorm:"many2many:project_associates;"`
-	// Tasks      []Task      `json:"tasks" gorm:"foreignKey:ProjectID"`
+	Tasks      []Task      `json:"tasks" gorm:"foreignKey:ProjectID"`
+	User       User        `json:"-" gorm:"foreignKey:UserID"`
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
