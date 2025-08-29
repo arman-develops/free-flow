@@ -15,5 +15,6 @@ func RegisterEntityRouter(rg *gin.RouterGroup) {
 		entity.GET("/", controllers.GetAllEntities)
 		entity.GET("/:id", controllers.GetEntityByID)
 		entity.GET("/u", controllers.GetEntityByUserID)
+		entity.PUT("/:id", controllers.UpdateEntity)
 	}
 }

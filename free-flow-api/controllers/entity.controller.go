@@ -12,9 +12,9 @@ import (
 )
 
 type Entityinput struct {
-	CompanyName string `json:"companyName" binding:"required,min=2,max=100"`
-	Contact     string `json:"contact" binding:"required,min=2,max=100"`
-	Email       string `json:"email" binding:"required,email"`
+	CompanyName string `json:"companyName" binding:"min=2,max=100"`
+	Contact     string `json:"contact" binding:"min=2,max=100"`
+	Email       string `json:"email" binding:"email"`
 }
 
 func NewEntity(c *gin.Context) {
@@ -111,4 +111,52 @@ func GetEntityByUserID(c *gin.Context) {
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, entities)
+}
+
+func UpdateEntity(c *gin.Context) {
+	// 1. Validate JWT
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	// 2. Get entityID from URL param
+	entityIDParam := c.Param("id")
+	entityID, err := uuid.Parse(entityIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid entity id")
+		return
+	}
+
+	var updates Entityinput
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	var entity models.Entity
+	if err := config.DB.First(&entity, "id = ?", entityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "entity not found")
+		return
+	}
+
+	if err := config.DB.First(&entity, "user_id = ?", userID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "access denied")
+		return
+	}
+
+	updates.Email = strings.ToLower(strings.TrimSpace(updates.Email))
+
+	if err := config.DB.Model(&entity).Updates(updates).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to update entity")
+		return
+	}
+
+	data := map[string]string{
+		"message": "Entity updates successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusPartialContent, data)
 }
