@@ -2,13 +2,17 @@ package models
 
 import (
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Entity struct {
-	ID uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
 
 	CompanyName string `json:"companyName" gorm:"size:100;not null"`
 	Contact     string `json:"contact"`

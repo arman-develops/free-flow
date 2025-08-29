@@ -114,7 +114,6 @@ func GetEntityByUserID(c *gin.Context) {
 }
 
 func UpdateEntity(c *gin.Context) {
-	// 1. Validate JWT
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {
 		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
@@ -122,7 +121,6 @@ func UpdateEntity(c *gin.Context) {
 		return
 	}
 
-	// 2. Get entityID from URL param
 	entityIDParam := c.Param("id")
 	entityID, err := uuid.Parse(entityIDParam)
 	if err != nil {
@@ -158,5 +156,40 @@ func UpdateEntity(c *gin.Context) {
 		"message": "Entity updates successfully",
 	}
 
-	utils.SendSuccessResponse(c, http.StatusPartialContent, data)
+	utils.SendSuccessResponse(c, http.StatusOK, data)
+}
+
+func DeleteEntity(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	entityIDParam := c.Param("id")
+	entityID, err := uuid.Parse(entityIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid entity id")
+		return
+	}
+
+	// 3. Find the entity
+	var entity models.Entity
+	if err := config.DB.First(&entity, "id = ?", entityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "entity not found")
+		return
+	}
+
+	// 4. Soft delete (sets DeletedAt, doesn’t remove row)
+	if err := config.DB.Delete(&entity).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to delete entity")
+		return
+	}
+
+	data := map[string]string{
+		"message": "Entity deleted successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
 }
