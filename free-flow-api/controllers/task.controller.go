@@ -11,11 +11,11 @@ import (
 )
 
 type TaskInput struct {
-	Title                string     `json:"title" binding:"required"`
-	Description          string     `json:"description"`
-	EstimatedHours       float64    `json:"estimated_hours"`
-	AssignedToAssociated *uuid.UUID `json:"assigned_associate,omitempty"`
-	ProjectID            uuid.UUID  `json:"projectID"`
+	Title               string     `json:"title" binding:"required"`
+	Description         string     `json:"description"`
+	EstimatedHours      float64    `json:"estimated_hours"`
+	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate,omitempty"`
+	ProjectID           uuid.UUID  `json:"project_id" binding:"required"`
 }
 
 func NewTask(c *gin.Context) {
@@ -30,11 +30,11 @@ func NewTask(c *gin.Context) {
 	//get user input
 	var input TaskInput
 
-	if !utils.ProjectExists(input.ProjectID.String()) {
-		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
-		c.Abort()
-		return
-	}
+	// if !utils.ProjectExists(input.ProjectID) {
+	// 	utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid access")
+	// 	c.Abort()
+	// 	return
+	// }
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -46,12 +46,12 @@ func NewTask(c *gin.Context) {
 		Title:               input.Title,
 		Description:         input.Description,
 		EstimatedHours:      input.EstimatedHours,
-		AssignedToAssociate: input.AssignedToAssociated,
+		AssignedToAssociate: input.AssignedToAssociate,
 		ProjectID:           input.ProjectID,
 	}
 
 	if err := config.DB.Create(&task).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to create a new associate")
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to create a new task")
 		return
 	}
 
@@ -120,4 +120,76 @@ func GetTasksByID(c *gin.Context) {
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, task)
+}
+
+func UpdateTask(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	taskIDParam := c.Param("id")
+	taskID, err := uuid.Parse(taskIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid task id")
+		return
+	}
+
+	var updates TaskInput
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	var task models.Task
+	if err := config.DB.First(&task, "id = ?", taskID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "task not found")
+		return
+	}
+
+	if err := config.DB.Model(&task).Updates(updates).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	data := map[string]string{
+		"message": "Task updated successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
+}
+
+func DeleteTask(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	taskIDParam := c.Param("id")
+	taskID, err := uuid.Parse(taskIDParam)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid project id")
+		return
+	}
+
+	var task models.Task
+	if err := config.DB.First(&task, "id = ?", taskID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "task not found")
+		return
+	}
+
+	if err := config.DB.Delete(&task).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to delete task")
+		return
+	}
+
+	data := map[string]string{
+		"message": "task deleted successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
 }

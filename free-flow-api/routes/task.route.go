@@ -15,5 +15,7 @@ func RegisterTaskRouter(rg *gin.RouterGroup) {
 		task.GET("/", controllers.GetAllTasks)
 		task.GET("/:id", controllers.GetTasksByID)
 		task.GET("p/:id", controllers.GetAllTasksByProjectID)
+		task.PUT("/:id", controllers.UpdateTask)
+		task.DELETE("/:id", controllers.DeleteTask)
 	}
 }

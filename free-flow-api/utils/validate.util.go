@@ -27,8 +27,8 @@ func ProjectExists(projectID string) bool {
 		return false
 	}
 
-	var entity models.Project
-	if err := config.DB.First(&entity, "id = ?", parsed).Error; err != nil {
+	var project models.Project
+	if err := config.DB.First(&project, "id = ?", parsed).Error; err != nil {
 		return false
 	}
 
