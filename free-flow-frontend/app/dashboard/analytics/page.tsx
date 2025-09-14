@@ -1,7 +1,7 @@
-import { Sidebar } from "@/components/sidebar"
-import { AnalyticsCharts } from "@/components/analytics-charts"
-import { PerformanceMetrics } from "@/components/performance-metrics"
-import { TimeTracking } from "@/components/time-tracking"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { AnalyticsCharts } from "@/components/dashboard/analytics-charts"
+import { PerformanceMetrics } from "@/components/dashboard/performance-metrics"
+import { TimeTracking } from "@/components/dashboard/time-tracking"
 import { Button } from "@/components/ui/button"
 import { Download, BarChart3 } from "lucide-react"
 

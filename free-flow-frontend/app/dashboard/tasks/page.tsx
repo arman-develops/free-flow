@@ -1,10 +1,9 @@
-import { Sidebar } from "@/components/sidebar"
-import { AssociatesTable } from "@/components/associates-table"
-import { AssociateStats } from "@/components/associate-stats"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { TasksTable } from "@/components/dashboard/tasks-table"
 import { Button } from "@/components/ui/button"
-import { Plus, UserCheck } from "lucide-react"
+import { Plus, CheckSquare } from "lucide-react"
 
-export default function AssociatesPage() {
+export default function TasksPage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -14,22 +13,19 @@ export default function AssociatesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <UserCheck className="h-8 w-8" />
-                Associates
+                <CheckSquare className="h-8 w-8" />
+                Tasks
               </h1>
-              <p className="text-muted-foreground">Manage your team of skilled associates and their assignments.</p>
+              <p className="text-muted-foreground">Manage and track individual tasks across all projects.</p>
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add Associate
+              Create Task
             </Button>
           </div>
 
-          {/* Associate Stats */}
-          <AssociateStats />
-
-          {/* Associates Table */}
-          <AssociatesTable />
+          {/* Tasks Table */}
+          <TasksTable />
         </div>
       </main>
     </div>

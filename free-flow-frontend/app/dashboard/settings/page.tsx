@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/sidebar"
+import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings } from "lucide-react"
 

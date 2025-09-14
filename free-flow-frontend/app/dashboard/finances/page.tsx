@@ -1,7 +1,7 @@
-import { Sidebar } from "@/components/sidebar"
-import { FinanceStats } from "@/components/finance-stats"
-import { PaymentsTable } from "@/components/payments-table"
-import { ExpensesTable } from "@/components/expenses-table"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { FinanceStats } from "@/components/dashboard/finance-stats"
+import { PaymentsTable } from "@/components/dashboard/payments-table"
+import { ExpensesTable } from "@/components/dashboard/expenses-table"
 import { Button } from "@/components/ui/button"
 import { Plus, DollarSign } from "lucide-react"
 

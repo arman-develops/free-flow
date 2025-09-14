@@ -1,9 +1,9 @@
-import { Sidebar } from "@/components/sidebar"
-import { ClientsTable } from "@/components/clients-table"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { ProjectsTable } from "@/components/dashboard/projects-table"
 import { Button } from "@/components/ui/button"
-import { Plus, Users } from "lucide-react"
+import { Plus, FolderOpen } from "lucide-react"
 
-export default function ClientsPage() {
+export default function ProjectsPage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -13,19 +13,19 @@ export default function ClientsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Users className="h-8 w-8" />
-                Clients
+                <FolderOpen className="h-8 w-8" />
+                Projects
               </h1>
-              <p className="text-muted-foreground">Manage your client relationships and contact information.</p>
+              <p className="text-muted-foreground">Manage your projects and track their progress.</p>
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add Client
+              New Project
             </Button>
           </div>
 
-          {/* Clients Table */}
-          <ClientsTable />
+          {/* Projects Table */}
+          <ProjectsTable />
         </div>
       </main>
     </div>

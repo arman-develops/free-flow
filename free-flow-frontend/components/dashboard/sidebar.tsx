@@ -63,7 +63,7 @@ export function Sidebar() {
           const isActive = pathname === item.href
 
           return (
-            <Link key={item.name} href={item.href}>
+            <Link key={item.name} href={`/dashboard${item.href}`}>
               <Button
                 variant={isActive ? "default" : "ghost"}
                 className={cn(
