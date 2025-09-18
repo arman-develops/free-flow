@@ -1,14 +1,12 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { AnalyticsCharts } from "@/components/dashboard/analytics-charts"
-import { PerformanceMetrics } from "@/components/dashboard/performance-metrics"
-import { TimeTracking } from "@/components/dashboard/time-tracking"
-import { Button } from "@/components/ui/button"
-import { Download, BarChart3 } from "lucide-react"
+import { AnalyticsCharts } from "@/components/dashboard/analytics-charts";
+import { PerformanceMetrics } from "@/components/dashboard/performance-metrics";
+import { TimeTracking } from "@/components/dashboard/time-tracking";
+import { Button } from "@/components/ui/button";
+import { Download, BarChart3 } from "lucide-react";
 
 export default function AnalyticsPage() {
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -18,9 +16,14 @@ export default function AnalyticsPage() {
                 <BarChart3 className="h-8 w-8" />
                 Analytics
               </h1>
-              <p className="text-muted-foreground">Detailed insights into your business performance and trends.</p>
+              <p className="text-muted-foreground">
+                Detailed insights into your business performance and trends.
+              </p>
             </div>
-            <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 bg-transparent"
+            >
               <Download className="h-4 w-4" />
               Export Report
             </Button>
@@ -37,5 +40,5 @@ export default function AnalyticsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

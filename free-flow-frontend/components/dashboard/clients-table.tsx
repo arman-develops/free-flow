@@ -1,13 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Edit, Trash2, Eye, Mail, Phone } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Mail,
+  Phone,
+} from "lucide-react";
 
 const clients = [
   {
@@ -65,30 +85,30 @@ const clients = [
     totalValue: 0,
     lastContact: "2024-12-12",
   },
-]
+];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "active":
-      return <Badge variant="secondary">Active</Badge>
+      return <Badge variant="secondary">Active</Badge>;
     case "inactive":
-      return <Badge variant="outline">Inactive</Badge>
+      return <Badge variant="outline">Inactive</Badge>;
     case "prospect":
-      return <Badge variant="default">Prospect</Badge>
+      return <Badge variant="default">Prospect</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function ClientsTable() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.company.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  );
 
   return (
     <Card>
@@ -101,7 +121,7 @@ export function ClientsTable() {
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
-                onChange={(e:any) => setSearchTerm(e.target.value)}
+                onChange={(e: any) => setSearchTerm(e.target.value)}
                 className="pl-8 w-64"
               />
             </div>
@@ -127,7 +147,9 @@ export function ClientsTable() {
                 <TableCell>
                   <div>
                     <div className="font-medium">{client.name}</div>
-                    <div className="text-sm text-muted-foreground">{client.company}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {client.company}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -175,5 +197,5 @@ export function ClientsTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

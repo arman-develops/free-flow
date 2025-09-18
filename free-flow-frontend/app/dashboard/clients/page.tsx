@@ -1,12 +1,10 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { ClientsTable } from "@/components/dashboard/clients-table"
-import { Button } from "@/components/ui/button"
-import { Plus, Users } from "lucide-react"
+import { ClientsTable } from "@/components/dashboard/clients-table";
+import { Button } from "@/components/ui/button";
+import { Plus, Users } from "lucide-react";
 
 export default function ClientsPage() {
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -16,7 +14,9 @@ export default function ClientsPage() {
                 <Users className="h-8 w-8" />
                 Clients
               </h1>
-              <p className="text-muted-foreground">Manage your client relationships and contact information.</p>
+              <p className="text-muted-foreground">
+                Manage your client relationships and contact information.
+              </p>
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -29,5 +29,5 @@ export default function ClientsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

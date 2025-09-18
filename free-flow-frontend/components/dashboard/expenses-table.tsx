@@ -1,11 +1,23 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Eye, Edit, Trash2, ArrowRight } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Eye, Edit, Trash2, ArrowRight } from "lucide-react";
 
 const expenses = [
   {
@@ -58,35 +70,35 @@ const expenses = [
     receipt: true,
     status: "approved",
   },
-]
+];
 
 const getCategoryBadge = (category: string) => {
   switch (category) {
     case "Software":
-      return <Badge variant="default">Software</Badge>
+      return <Badge variant="default">Software</Badge>;
     case "Hosting":
-      return <Badge variant="secondary">Hosting</Badge>
+      return <Badge variant="secondary">Hosting</Badge>;
     case "Assets":
-      return <Badge variant="outline">Assets</Badge>
+      return <Badge variant="outline">Assets</Badge>;
     case "Business":
-      return <Badge variant="outline">Business</Badge>
+      return <Badge variant="outline">Business</Badge>;
     default:
-      return <Badge variant="outline">{category}</Badge>
+      return <Badge variant="outline">{category}</Badge>;
   }
-}
+};
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "approved":
-      return <Badge variant="secondary">Approved</Badge>
+      return <Badge variant="secondary">Approved</Badge>;
     case "pending":
-      return <Badge variant="default">Pending</Badge>
+      return <Badge variant="default">Pending</Badge>;
     case "rejected":
-      return <Badge variant="destructive">Rejected</Badge>
+      return <Badge variant="destructive">Rejected</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function ExpensesTable() {
   return (
@@ -115,15 +127,20 @@ export function ExpensesTable() {
               <TableRow key={expense.id}>
                 <TableCell>
                   <div>
-                    <div className="font-medium text-sm">{expense.description}</div>
+                    <div className="font-medium text-sm">
+                      {expense.description}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {expense.project} {expense.receipt && "• Receipt attached"}
+                      {expense.project}{" "}
+                      {expense.receipt && "• Receipt attached"}
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>{getCategoryBadge(expense.category)}</TableCell>
                 <TableCell>
-                  <div className="font-medium">${expense.amount.toFixed(2)}</div>
+                  <div className="font-medium">
+                    ${expense.amount.toFixed(2)}
+                  </div>
                 </TableCell>
                 <TableCell>{expense.date}</TableCell>
                 <TableCell>{getStatusBadge(expense.status)}</TableCell>
@@ -156,5 +173,5 @@ export function ExpensesTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

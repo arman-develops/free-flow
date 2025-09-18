@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AreaChart,
   Area,
@@ -16,8 +16,12 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 const revenueData = [
   { month: "Jan", revenue: 8500, expenses: 2100, profit: 6400 },
@@ -32,7 +36,7 @@ const revenueData = [
   { month: "Oct", revenue: 19200, expenses: 3800, profit: 15400 },
   { month: "Nov", revenue: 16800, expenses: 3300, profit: 13500 },
   { month: "Dec", revenue: 18500, expenses: 3500, profit: 15000 },
-]
+];
 
 const projectData = [
   { month: "Jan", completed: 2, active: 3, new: 1 },
@@ -47,7 +51,7 @@ const projectData = [
   { month: "Oct", completed: 5, active: 6, new: 3 },
   { month: "Nov", completed: 4, active: 5, new: 2 },
   { month: "Dec", completed: 3, active: 4, new: 1 },
-]
+];
 
 const clientDistribution = [
   { name: "TechCorp Inc.", value: 35, color: "#0891b2" },
@@ -55,14 +59,14 @@ const clientDistribution = [
   { name: "RetailCorp", value: 20, color: "#f59e0b" },
   { name: "Creative Agency", value: 12, color: "#6366f1" },
   { name: "Others", value: 8, color: "#e3342f" },
-]
+];
 
 const taskCompletionData = [
   { week: "Week 1", completed: 12, assigned: 15 },
   { week: "Week 2", completed: 18, assigned: 20 },
   { week: "Week 3", completed: 14, assigned: 16 },
   { week: "Week 4", completed: 22, assigned: 25 },
-]
+];
 
 export function AnalyticsCharts() {
   return (
@@ -126,7 +130,10 @@ export function AnalyticsCharts() {
             <CardContent>
               <ChartContainer
                 config={{
-                  completed: { label: "Completed", color: "hsl(var(--chart-2))" },
+                  completed: {
+                    label: "Completed",
+                    color: "hsl(var(--chart-2))",
+                  },
                   active: { label: "Active", color: "hsl(var(--chart-1))" },
                   new: { label: "New", color: "hsl(var(--chart-4))" },
                 }}
@@ -138,9 +145,21 @@ export function AnalyticsCharts() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="completed" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="active" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="new" fill="var(--color-chart-4)" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="completed"
+                      fill="var(--color-chart-2)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="active"
+                      fill="var(--color-chart-1)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="new"
+                      fill="var(--color-chart-4)"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -187,9 +206,15 @@ export function AnalyticsCharts() {
               </div>
               <div className="mt-4 space-y-2">
                 {clientDistribution.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between text-sm"
+                  >
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
                       <span>{item.name}</span>
                     </div>
                     <span className="font-medium">{item.value}%</span>
@@ -208,7 +233,10 @@ export function AnalyticsCharts() {
             <CardContent>
               <ChartContainer
                 config={{
-                  completed: { label: "Completed", color: "hsl(var(--chart-2))" },
+                  completed: {
+                    label: "Completed",
+                    color: "hsl(var(--chart-2))",
+                  },
                   assigned: { label: "Assigned", color: "hsl(var(--chart-1))" },
                 }}
                 className="h-[400px]"
@@ -224,14 +252,22 @@ export function AnalyticsCharts() {
                       dataKey="assigned"
                       stroke="var(--color-chart-1)"
                       strokeWidth={3}
-                      dot={{ fill: "var(--color-chart-1)", strokeWidth: 2, r: 4 }}
+                      dot={{
+                        fill: "var(--color-chart-1)",
+                        strokeWidth: 2,
+                        r: 4,
+                      }}
                     />
                     <Line
                       type="monotone"
                       dataKey="completed"
                       stroke="var(--color-chart-2)"
                       strokeWidth={3}
-                      dot={{ fill: "var(--color-chart-2)", strokeWidth: 2, r: 4 }}
+                      dot={{
+                        fill: "var(--color-chart-2)",
+                        strokeWidth: 2,
+                        r: 4,
+                      }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -241,5 +277,5 @@ export function AnalyticsCharts() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

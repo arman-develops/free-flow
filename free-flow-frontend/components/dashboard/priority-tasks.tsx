@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle, Clock, User, ArrowRight } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Clock, User, ArrowRight } from "lucide-react";
 
 const priorityTasks = [
   {
@@ -42,33 +42,33 @@ const priorityTasks = [
     priority: "high",
     status: "not-started",
   },
-]
+];
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "high":
-      return "destructive"
+      return "destructive";
     case "medium":
-      return "default"
+      return "default";
     case "low":
-      return "secondary"
+      return "secondary";
     default:
-      return "outline"
+      return "outline";
   }
-}
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case "in-progress":
-      return "text-primary"
+      return "text-primary";
     case "pending":
-      return "text-secondary"
+      return "text-secondary";
     case "not-started":
-      return "text-muted-foreground"
+      return "text-muted-foreground";
     default:
-      return "text-muted-foreground"
+      return "text-muted-foreground";
   }
-}
+};
 
 export function PriorityTasks() {
   return (
@@ -91,8 +91,13 @@ export function PriorityTasks() {
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-sm font-medium text-card-foreground truncate">{task.title}</h4>
-                <Badge variant={getPriorityColor(task.priority)} className="text-xs">
+                <h4 className="text-sm font-medium text-card-foreground truncate">
+                  {task.title}
+                </h4>
+                <Badge
+                  variant={getPriorityColor(task.priority)}
+                  className="text-xs"
+                >
                   {task.priority}
                 </Badge>
               </div>
@@ -108,10 +113,14 @@ export function PriorityTasks() {
                 </div>
               </div>
             </div>
-            <div className={`text-xs font-medium ${getStatusColor(task.status)}`}>{task.status.replace("-", " ")}</div>
+            <div
+              className={`text-xs font-medium ${getStatusColor(task.status)}`}
+            >
+              {task.status.replace("-", " ")}
+            </div>
           </div>
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }

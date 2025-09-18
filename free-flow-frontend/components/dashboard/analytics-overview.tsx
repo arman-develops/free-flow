@@ -1,9 +1,23 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { TrendingUp, DollarSign } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { TrendingUp, DollarSign } from "lucide-react";
 
 const monthlyData = [
   { month: "Jul", revenue: 8500, projects: 3 },
@@ -12,14 +26,14 @@ const monthlyData = [
   { month: "Oct", revenue: 15600, projects: 6 },
   { month: "Nov", revenue: 11400, projects: 4 },
   { month: "Dec", revenue: 12450, projects: 5 },
-]
+];
 
 const projectTypeData = [
   { name: "Web Development", value: 45, color: "#0891b2" },
   { name: "Mobile Apps", value: 30, color: "#84cc16" },
   { name: "UI/UX Design", value: 15, color: "#f59e0b" },
   { name: "Consulting", value: 10, color: "#6366f1" },
-]
+];
 
 export function AnalyticsOverview() {
   return (
@@ -48,7 +62,11 @@ export function AnalyticsOverview() {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="revenue" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="revenue"
+                  fill="var(--color-chart-1)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -96,9 +114,15 @@ export function AnalyticsOverview() {
           </div>
           <div className="mt-4 space-y-2">
             {projectTypeData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-sm">
+              <div
+                key={item.name}
+                className="flex items-center justify-between text-sm"
+              >
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
                   <span>{item.name}</span>
                 </div>
                 <span className="font-medium">{item.value}%</span>
@@ -108,5 +132,5 @@ export function AnalyticsOverview() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

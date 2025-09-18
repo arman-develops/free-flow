@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle, AlertCircle, User } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock, CheckCircle, AlertCircle, User } from "lucide-react";
 
 const activities = [
   {
@@ -50,32 +50,32 @@ const activities = [
     time: "2 days ago",
     status: "new",
   },
-]
+];
 
 const getActivityIcon = (type: string) => {
   switch (type) {
     case "task_completed":
     case "payment_received":
-      return <CheckCircle className="h-4 w-4 text-secondary" />
+      return <CheckCircle className="h-4 w-4 text-secondary" />;
     case "task_overdue":
-      return <AlertCircle className="h-4 w-4 text-destructive" />
+      return <AlertCircle className="h-4 w-4 text-destructive" />;
     default:
-      return <Clock className="h-4 w-4 text-primary" />
+      return <Clock className="h-4 w-4 text-primary" />;
   }
-}
+};
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "completed":
-      return <Badge variant="secondary">Completed</Badge>
+      return <Badge variant="secondary">Completed</Badge>;
     case "overdue":
-      return <Badge variant="destructive">Overdue</Badge>
+      return <Badge variant="destructive">Overdue</Badge>;
     case "new":
-      return <Badge variant="default">New</Badge>
+      return <Badge variant="default">New</Badge>;
     default:
-      return <Badge variant="outline">Active</Badge>
+      return <Badge variant="outline">Active</Badge>;
   }
-}
+};
 
 export function RecentActivity() {
   return (
@@ -92,9 +92,13 @@ export function RecentActivity() {
             key={activity.id}
             className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
           >
-            <div className="flex-shrink-0 mt-1">{getActivityIcon(activity.type)}</div>
+            <div className="flex-shrink-0 mt-1">
+              {getActivityIcon(activity.type)}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-card-foreground">{activity.title}</p>
+              <p className="text-sm font-medium text-card-foreground">
+                {activity.title}
+              </p>
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                   <span>{activity.project}</span>
@@ -106,11 +110,13 @@ export function RecentActivity() {
                 </div>
                 {getStatusBadge(activity.status)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {activity.time}
+              </p>
             </div>
           </div>
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }

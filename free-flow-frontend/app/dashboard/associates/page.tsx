@@ -1,13 +1,11 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { AssociatesTable } from "@/components/dashboard/associates-table"
-import { AssociateStats } from "@/components/dashboard/associate-stats"
-import { Button } from "@/components/ui/button"
-import { Plus, UserCheck } from "lucide-react"
+import { AssociatesTable } from "@/components/dashboard/associates-table";
+import { AssociateStats } from "@/components/dashboard/associate-stats";
+import { Button } from "@/components/ui/button";
+import { Plus, UserCheck } from "lucide-react";
 
 export default function AssociatesPage() {
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -17,7 +15,9 @@ export default function AssociatesPage() {
                 <UserCheck className="h-8 w-8" />
                 Associates
               </h1>
-              <p className="text-muted-foreground">Manage your team of skilled associates and their assignments.</p>
+              <p className="text-muted-foreground">
+                Manage your team of skilled associates and their assignments.
+              </p>
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -33,5 +33,5 @@ export default function AssociatesPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

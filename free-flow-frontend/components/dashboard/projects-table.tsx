@@ -1,14 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Edit, Trash2, Eye, Calendar, DollarSign, User } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  DollarSign,
+  User,
+} from "lucide-react";
 
 const projects = [
   {
@@ -81,34 +102,34 @@ const projects = [
     tasks: 6,
     completedTasks: 0,
   },
-]
+];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "completed":
-      return <Badge variant="secondary">Completed</Badge>
+      return <Badge variant="secondary">Completed</Badge>;
     case "in-progress":
-      return <Badge variant="default">In Progress</Badge>
+      return <Badge variant="default">In Progress</Badge>;
     case "at-risk":
-      return <Badge variant="destructive">At Risk</Badge>
+      return <Badge variant="destructive">At Risk</Badge>;
     case "planning":
-      return <Badge variant="outline">Planning</Badge>
+      return <Badge variant="outline">Planning</Badge>;
     case "on-hold":
-      return <Badge variant="outline">On Hold</Badge>
+      return <Badge variant="outline">On Hold</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function ProjectsTable() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredProjects = projects.filter(
     (project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  );
 
   return (
     <Card>
@@ -166,11 +187,13 @@ export function ProjectsTable() {
                 <TableCell>
                   <div className="space-y-1">
                     <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="h-3 w-3" />${project.spent.toLocaleString()} / $
+                      <DollarSign className="h-3 w-3" />$
+                      {project.spent.toLocaleString()} / $
                       {project.budget.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {Math.round((project.spent / project.budget) * 100)}% spent
+                      {Math.round((project.spent / project.budget) * 100)}%
+                      spent
                     </div>
                   </div>
                 </TableCell>
@@ -180,7 +203,9 @@ export function ProjectsTable() {
                       <Calendar className="h-3 w-3" />
                       {project.dueDate}
                     </div>
-                    <div className="text-xs text-muted-foreground">Started: {project.startDate}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Started: {project.startDate}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -218,5 +243,5 @@ export function ProjectsTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

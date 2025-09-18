@@ -1,14 +1,42 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, MoreHorizontal, Edit, Trash2, Eye, Calendar, User, Clock, DollarSign } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  User,
+  Clock,
+  DollarSign,
+} from "lucide-react";
 
 const tasks = [
   {
@@ -101,54 +129,56 @@ const tasks = [
     rate: 80,
     description: "Implement secure user authentication system",
   },
-]
+];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "completed":
-      return <Badge variant="secondary">Completed</Badge>
+      return <Badge variant="secondary">Completed</Badge>;
     case "in-progress":
-      return <Badge variant="default">In Progress</Badge>
+      return <Badge variant="default">In Progress</Badge>;
     case "pending":
-      return <Badge variant="outline">Pending</Badge>
+      return <Badge variant="outline">Pending</Badge>;
     case "not-started":
-      return <Badge variant="outline">Not Started</Badge>
+      return <Badge variant="outline">Not Started</Badge>;
     case "overdue":
-      return <Badge variant="destructive">Overdue</Badge>
+      return <Badge variant="destructive">Overdue</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 const getPriorityBadge = (priority: string) => {
   switch (priority) {
     case "high":
-      return <Badge variant="destructive">High</Badge>
+      return <Badge variant="destructive">High</Badge>;
     case "medium":
-      return <Badge variant="default">Medium</Badge>
+      return <Badge variant="default">Medium</Badge>;
     case "low":
-      return <Badge variant="secondary">Low</Badge>
+      return <Badge variant="secondary">Low</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function TasksTable() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [priorityFilter, setPriorityFilter] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.assignee.toLowerCase().includes(searchTerm.toLowerCase())
+      task.assignee.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter
-    const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter
+    const matchesStatus =
+      statusFilter === "all" || task.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || task.priority === priorityFilter;
 
-    return matchesSearch && matchesStatus && matchesPriority
-  })
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
   return (
     <Card>
@@ -213,13 +243,17 @@ export function TasksTable() {
                 <TableCell>
                   <div>
                     <div className="font-medium">{task.title}</div>
-                    <div className="text-sm text-muted-foreground truncate max-w-xs">{task.description}</div>
+                    <div className="text-sm text-muted-foreground truncate max-w-xs">
+                      {task.description}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium text-sm">{task.project}</div>
-                    <div className="text-xs text-muted-foreground">{task.client}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {task.client}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -243,7 +277,10 @@ export function TasksTable() {
                       {task.actualHours}h / {task.estimatedHours}h
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {task.actualHours > task.estimatedHours ? "Over" : "Under"} estimate
+                      {task.actualHours > task.estimatedHours
+                        ? "Over"
+                        : "Under"}{" "}
+                      estimate
                     </div>
                   </div>
                 </TableCell>
@@ -288,5 +325,5 @@ export function TasksTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

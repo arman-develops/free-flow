@@ -1,11 +1,32 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Eye, Edit, Download, CheckCircle, Clock, AlertTriangle, ArrowRight } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Download,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  ArrowRight,
+} from "lucide-react";
 
 const payments = [
   {
@@ -63,33 +84,33 @@ const payments = [
     dueDate: "2024-12-20",
     paidDate: null,
   },
-]
+];
 
 const getStatusIcon = (status: string) => {
   switch (status) {
     case "paid":
-      return <CheckCircle className="h-4 w-4 text-secondary" />
+      return <CheckCircle className="h-4 w-4 text-secondary" />;
     case "pending":
-      return <Clock className="h-4 w-4 text-primary" />
+      return <Clock className="h-4 w-4 text-primary" />;
     case "overdue":
-      return <AlertTriangle className="h-4 w-4 text-destructive" />
+      return <AlertTriangle className="h-4 w-4 text-destructive" />;
     default:
-      return <Clock className="h-4 w-4 text-muted-foreground" />
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
-}
+};
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "paid":
-      return <Badge variant="secondary">Paid</Badge>
+      return <Badge variant="secondary">Paid</Badge>;
     case "pending":
-      return <Badge variant="default">Pending</Badge>
+      return <Badge variant="default">Pending</Badge>;
     case "overdue":
-      return <Badge variant="destructive">Overdue</Badge>
+      return <Badge variant="destructive">Overdue</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function PaymentsTable() {
   return (
@@ -130,17 +151,25 @@ export function PaymentsTable() {
                 <TableCell>
                   <div>
                     <div className="font-medium text-sm">{payment.client}</div>
-                    <div className="text-xs text-muted-foreground">{payment.project}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {payment.project}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="font-medium">${payment.amount.toLocaleString()}</div>
+                  <div className="font-medium">
+                    ${payment.amount.toLocaleString()}
+                  </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(payment.status)}</TableCell>
                 <TableCell>
                   <div className="text-sm">
                     <div>Due: {payment.dueDate}</div>
-                    {payment.paidDate && <div className="text-xs text-muted-foreground">Paid: {payment.paidDate}</div>}
+                    {payment.paidDate && (
+                      <div className="text-xs text-muted-foreground">
+                        Paid: {payment.paidDate}
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -172,5 +201,5 @@ export function PaymentsTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

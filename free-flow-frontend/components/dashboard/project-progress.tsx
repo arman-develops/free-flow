@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { FolderOpen, ArrowRight, Calendar, DollarSign } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FolderOpen, ArrowRight, Calendar, DollarSign } from "lucide-react";
 
 const ongoingProjects = [
   {
@@ -47,28 +47,28 @@ const ongoingProjects = [
     budget: "$3,500",
     spent: "$3,150",
   },
-]
+];
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case "ahead":
-      return "secondary"
+      return "secondary";
     case "on-track":
-      return "default"
+      return "default";
     case "at-risk":
-      return "destructive"
+      return "destructive";
     case "delayed":
-      return "destructive"
+      return "destructive";
     default:
-      return "outline"
+      return "outline";
   }
-}
+};
 
 const getProgressColor = (progress: number, status: string) => {
-  if (status === "at-risk" || status === "delayed") return "bg-destructive"
-  if (status === "ahead") return "bg-secondary"
-  return "bg-primary"
-}
+  if (status === "at-risk" || status === "delayed") return "bg-destructive";
+  if (status === "ahead") return "bg-secondary";
+  return "bg-primary";
+};
 
 export function ProjectProgress() {
   return (
@@ -88,10 +88,17 @@ export function ProjectProgress() {
           <div key={project.id} className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-medium text-card-foreground">{project.name}</h4>
-                <p className="text-xs text-muted-foreground">{project.client}</p>
+                <h4 className="text-sm font-medium text-card-foreground">
+                  {project.name}
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  {project.client}
+                </p>
               </div>
-              <Badge variant={getStatusColor(project.status)} className="text-xs">
+              <Badge
+                variant={getStatusColor(project.status)}
+                className="text-xs"
+              >
                 {project.status.replace("-", " ")}
               </Badge>
             </div>
@@ -118,5 +125,5 @@ export function ProjectProgress() {
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }

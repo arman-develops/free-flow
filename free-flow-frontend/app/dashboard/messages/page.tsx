@@ -1,11 +1,9 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageSquare } from "lucide-react";
 
 export default function MessagesPage() {
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -15,7 +13,9 @@ export default function MessagesPage() {
                 <MessageSquare className="h-8 w-8" />
                 Messages
               </h1>
-              <p className="text-muted-foreground">Communicate with clients and team members.</p>
+              <p className="text-muted-foreground">
+                Communicate with clients and team members.
+              </p>
             </div>
           </div>
 
@@ -26,13 +26,13 @@ export default function MessagesPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                The messaging system is under development. This will include client communication, team chat, and
-                project discussions.
+                The messaging system is under development. This will include
+                client communication, team chat, and project discussions.
               </p>
             </CardContent>
           </Card>
         </div>
       </main>
     </div>
-  )
+  );
 }

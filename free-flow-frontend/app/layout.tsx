@@ -1,20 +1,17 @@
+import type React from "react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/next";
+import { AuthWrapper } from "@/components/auth/auth-wrapper";
+import { Suspense } from "react";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Free Flow",
-  description: "A project management app with accounting",
+  title: "FreeFlow - Project Management Dashboard",
+  description: "Comprehensive project management with financial tracking",
+  generator: "v0.app",
 };
 
 export default function RootLayout({
@@ -24,10 +21,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <Providers>
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthWrapper>{children}</AuthWrapper>
+          </Suspense>
+        </Providers>
+        <Analytics />
       </body>
     </html>
   );

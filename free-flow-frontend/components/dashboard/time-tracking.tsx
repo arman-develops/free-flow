@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Clock, Play, Pause, Square } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Clock, Play, Pause, Square } from "lucide-react";
 
 const timeEntries = [
   {
@@ -42,46 +42,46 @@ const timeEntries = [
     status: "completed",
     startTime: "02:30 PM",
   },
-]
+];
 
 const getStatusIcon = (status: string) => {
   switch (status) {
     case "active":
-      return <Play className="h-3 w-3 text-secondary" />
+      return <Play className="h-3 w-3 text-secondary" />;
     case "paused":
-      return <Pause className="h-3 w-3 text-primary" />
+      return <Pause className="h-3 w-3 text-primary" />;
     case "completed":
-      return <Square className="h-3 w-3 text-muted-foreground" />
+      return <Square className="h-3 w-3 text-muted-foreground" />;
     default:
-      return <Clock className="h-3 w-3 text-muted-foreground" />
+      return <Clock className="h-3 w-3 text-muted-foreground" />;
   }
-}
+};
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "active":
-      return <Badge variant="secondary">Active</Badge>
+      return <Badge variant="secondary">Active</Badge>;
     case "paused":
-      return <Badge variant="default">Paused</Badge>
+      return <Badge variant="default">Paused</Badge>;
     case "completed":
-      return <Badge variant="outline">Completed</Badge>
+      return <Badge variant="outline">Completed</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 const parseTime = (timeStr: string) => {
-  const parts = timeStr.split(" ")
-  let totalMinutes = 0
+  const parts = timeStr.split(" ");
+  let totalMinutes = 0;
   parts.forEach((part) => {
     if (part.includes("h")) {
-      totalMinutes += Number.parseInt(part) * 60
+      totalMinutes += Number.parseInt(part) * 60;
     } else if (part.includes("m")) {
-      totalMinutes += Number.parseInt(part)
+      totalMinutes += Number.parseInt(part);
     }
-  })
-  return totalMinutes
-}
+  });
+  return totalMinutes;
+};
 
 export function TimeTracking() {
   return (
@@ -95,10 +95,13 @@ export function TimeTracking() {
       <CardContent>
         <div className="space-y-4">
           {timeEntries.map((entry) => {
-            const timeSpentMinutes = parseTime(entry.timeSpent)
-            const estimatedMinutes = parseTime(entry.estimatedTime)
-            const progressPercentage = Math.min(100, (timeSpentMinutes / estimatedMinutes) * 100)
-            const isOvertime = timeSpentMinutes > estimatedMinutes
+            const timeSpentMinutes = parseTime(entry.timeSpent);
+            const estimatedMinutes = parseTime(entry.estimatedTime);
+            const progressPercentage = Math.min(
+              100,
+              (timeSpentMinutes / estimatedMinutes) * 100,
+            );
+            const isOvertime = timeSpentMinutes > estimatedMinutes;
 
             return (
               <div
@@ -112,13 +115,19 @@ export function TimeTracking() {
                       <h4 className="text-sm font-medium">{entry.task}</h4>
                       {getStatusBadge(entry.status)}
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{entry.project}</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {entry.project}
+                    </p>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Started: {entry.startTime}</span>
                       <span>
                         Time: {entry.timeSpent} / {entry.estimatedTime}
                       </span>
-                      {isOvertime && <span className="text-destructive font-medium">Overtime</span>}
+                      {isOvertime && (
+                        <span className="text-destructive font-medium">
+                          Overtime
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -126,13 +135,16 @@ export function TimeTracking() {
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
-                  <Progress value={progressPercentage} className={`h-2 ${isOvertime ? "bg-destructive/20" : ""}`} />
+                  <Progress
+                    value={progressPercentage}
+                    className={`h-2 ${isOvertime ? "bg-destructive/20" : ""}`}
+                  />
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -18,7 +18,7 @@ import {
   LogOut,
   Menu,
   X,
-} from "lucide-react"
+} from "lucide-react";
 
 const sidebarItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -30,11 +30,11 @@ const sidebarItems = [
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Messages", href: "/messages", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },
-]
+];
 
 export function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div
@@ -45,22 +45,30 @@ export function Sidebar() {
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        {!isCollapsed && <h1 className="text-xl font-bold text-sidebar-foreground">ProjectFlow</h1>}
+        {!isCollapsed && (
+          <h1 className="text-xl font-bold text-sidebar-foreground">
+            Free Flow
+          </h1>
+        )}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="text-sidebar-foreground hover:bg-sidebar-accent"
         >
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          {isCollapsed ? (
+            <Menu className="h-4 w-4" />
+          ) : (
+            <X className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {sidebarItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
 
           return (
             <Link key={item.name} href={`/dashboard${item.href}`}>
@@ -68,8 +76,10 @@ export function Sidebar() {
                 variant={isActive ? "default" : "ghost"}
                 className={cn(
                   "w-full justify-start gap-3 text-sidebar-foreground",
-                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-                  !isActive && "hover:bg-sidebar-primary hover:text-sidebar-primary-foreground",
+                  isActive &&
+                    "bg-sidebar-accent text-sidebar-accent-foreground",
+                  !isActive &&
+                    "hover:bg-sidebar-primary hover:text-sidebar-primary-foreground",
                   isCollapsed && "px-2",
                 )}
               >
@@ -77,7 +87,7 @@ export function Sidebar() {
                 {!isCollapsed && <span>{item.name}</span>}
               </Button>
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -95,5 +105,5 @@ export function Sidebar() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

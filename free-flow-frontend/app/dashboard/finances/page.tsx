@@ -1,14 +1,12 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { FinanceStats } from "@/components/dashboard/finance-stats"
-import { PaymentsTable } from "@/components/dashboard/payments-table"
-import { ExpensesTable } from "@/components/dashboard/expenses-table"
-import { Button } from "@/components/ui/button"
-import { Plus, DollarSign } from "lucide-react"
+import { FinanceStats } from "@/components/dashboard/finance-stats";
+import { PaymentsTable } from "@/components/dashboard/payments-table";
+import { ExpensesTable } from "@/components/dashboard/expenses-table";
+import { Button } from "@/components/ui/button";
+import { Plus, DollarSign } from "lucide-react";
 
 export default function FinancesPage() {
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -18,10 +16,15 @@ export default function FinancesPage() {
                 <DollarSign className="h-8 w-8" />
                 Finances
               </h1>
-              <p className="text-muted-foreground">Track payments, expenses, and financial performance.</p>
+              <p className="text-muted-foreground">
+                Track payments, expenses, and financial performance.
+              </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 bg-transparent"
+              >
                 <Plus className="h-4 w-4" />
                 Add Expense
               </Button>
@@ -43,5 +46,5 @@ export default function FinancesPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

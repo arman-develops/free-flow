@@ -1,14 +1,37 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Edit, Trash2, Eye, Mail, Phone, Star, DollarSign, CheckCircle } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Mail,
+  Phone,
+  Star,
+  DollarSign,
+  CheckCircle,
+} from "lucide-react";
 
 const associates = [
   {
@@ -86,32 +109,32 @@ const associates = [
     joinDate: "2024-05-20",
     avatar: "/devops-lifecycle.png",
   },
-]
+];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "active":
-      return <Badge variant="secondary">Active</Badge>
+      return <Badge variant="secondary">Active</Badge>;
     case "busy":
-      return <Badge variant="destructive">Busy</Badge>
+      return <Badge variant="destructive">Busy</Badge>;
     case "available":
-      return <Badge variant="default">Available</Badge>
+      return <Badge variant="default">Available</Badge>;
     case "inactive":
-      return <Badge variant="outline">Inactive</Badge>
+      return <Badge variant="outline">Inactive</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
-}
+};
 
 export function AssociatesTable() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredAssociates = associates.filter(
     (associate) =>
       associate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       associate.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
       associate.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  );
 
   return (
     <Card>
@@ -151,7 +174,10 @@ export function AssociatesTable() {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={associate.avatar || "/placeholder.svg"} alt={associate.name} />
+                      <AvatarImage
+                        src={associate.avatar || "/placeholder.svg"}
+                        alt={associate.name}
+                      />
                       <AvatarFallback>
                         {associate.name
                           .split(" ")
@@ -161,7 +187,9 @@ export function AssociatesTable() {
                     </Avatar>
                     <div>
                       <div className="font-medium">{associate.name}</div>
-                      <div className="text-sm text-muted-foreground">Joined {associate.joinDate}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Joined {associate.joinDate}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
@@ -190,7 +218,9 @@ export function AssociatesTable() {
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
-                    <span className="font-medium">${associate.hourlyRate}/hr</span>
+                    <span className="font-medium">
+                      ${associate.hourlyRate}/hr
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -202,7 +232,9 @@ export function AssociatesTable() {
                     <div className="text-xs text-muted-foreground">
                       ${associate.totalEarnings.toLocaleString()} earned
                     </div>
-                    <div className="text-xs text-muted-foreground">{associate.activeProjects} active projects</div>
+                    <div className="text-xs text-muted-foreground">
+                      {associate.activeProjects} active projects
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -234,5 +266,5 @@ export function AssociatesTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }
