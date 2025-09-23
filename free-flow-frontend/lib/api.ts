@@ -100,9 +100,14 @@ export const projectsApi = {
   },
 
   getProjectByClientID: async (id: string) => {
-    const response = await apiClient.get(`/project/e/${id}/`)
+    const response = await apiClient.get(`/project/e/${id}`)
     return response.data
   },
+
+  getProjectByID: async (id: string) => {
+    const response = await apiClient.get(`/project/${id}`)
+    return response.data
+  }
 }
 
 export const tasksApi = {

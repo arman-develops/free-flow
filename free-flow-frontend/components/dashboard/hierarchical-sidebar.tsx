@@ -41,6 +41,7 @@ export function HierarchicalSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set())
   const [clients, setClients] = useState<Client[]>([])
+  const [clientsWithProjects, setClientsWithProjects] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const pathname = usePathname()
   const { logout } = useAuthStore()
@@ -62,25 +63,32 @@ export function HierarchicalSidebar() {
     }
   }
 
-  const fecthProjects = async (id: string) => {
+  const fetchProjectsForClient = async (clientId: string) => {
+    if (clientsWithProjects.has(clientId)) return // Already loaded
+
     try {
-      const response = await projectsApi.getProjectByClientID(id)
+      const response = await projectsApi.getProjectByClientID(clientId)
       if (response.success) {
-        setClients([...clients, response.data])
+        // Update the client with its projects
+        setClients((prevClients) =>
+          prevClients.map((client) => (client.id === clientId ? { ...client, projects: response.data } : client)),
+        )
+        // Mark this client as having loaded projects
+        setClientsWithProjects((prev) => new Set([...prev, clientId]))
       }
     } catch (error) {
-      console.error("Failed to fetch clients:", error)
-    } finally {
-      setLoading(false)
+      console.error("Failed to fetch projects for client:", error)
     }
   }
 
-  const toggleClientExpansion = (clientId: string) => {
+  const toggleClientExpansion = async (clientId: string) => {
     const newExpanded = new Set(expandedClients)
     if (newExpanded.has(clientId)) {
       newExpanded.delete(clientId)
     } else {
       newExpanded.add(clientId)
+      // Fetch projects when expanding a client for the first time
+      await fetchProjectsForClient(clientId)
     }
     setExpandedClients(newExpanded)
   }
@@ -119,7 +127,7 @@ export function HierarchicalSidebar() {
       <nav className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-2">
           {/* Dashboard */}
-          <Link href="/dashboard">
+          <Link href="/">
             <Button
               variant="ghost"
               className={cn(
@@ -190,7 +198,7 @@ export function HierarchicalSidebar() {
                         <div className="ml-6 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500 px-2">Projects</span>
-                            <Link href={`/dashboard/projects/create`}>
+                            <Link href={`/dashboard/projects/create?clientId=${client.id}`}>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -200,7 +208,9 @@ export function HierarchicalSidebar() {
                               </Button>
                             </Link>
                           </div>
-                          {client.projects?.length ? (
+                          {!clientsWithProjects.has(client.id) ? (
+                            <div className="px-4 py-1 text-xs text-gray-400">Loading projects...</div>
+                          ) : client.projects?.length ? (
                             client.projects.map((project) => (
                               <Button
                                 key={project.id}
@@ -233,12 +243,12 @@ export function HierarchicalSidebar() {
 
           {/* Collapsed Clients */}
           {isCollapsed && (
-            <Link href="/clients">
+            <Link href="/dashboard/clients">
               <Button
                 variant="ghost"
                 className={cn(
                   "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
-                  pathname.startsWith("/clients") && "bg-gray-100 text-gray-900 font-medium",
+                  pathname.startsWith("/dashboard/clients") && "bg-gray-100 text-gray-900 font-medium",
                   "px-2",
                 )}
               >
@@ -248,12 +258,12 @@ export function HierarchicalSidebar() {
           )}
 
           {/* Associates */}
-          <Link href="/associates">
+          <Link href="/dashboard/associates">
             <Button
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
-                pathname.startsWith("/associates") && "bg-gray-100 text-gray-900 font-medium",
+                pathname.startsWith("/dashboard/associates") && "bg-gray-100 text-gray-900 font-medium",
                 isCollapsed && "px-2",
               )}
             >
@@ -266,12 +276,12 @@ export function HierarchicalSidebar() {
 
       {/* Bottom Section */}
       <div className="p-4 space-y-2 border-t border-gray-200">
-        <Link href="/settings">
+        <Link href="/dashboard/settings">
           <Button
             variant="ghost"
             className={cn(
               "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
-              pathname === "/settings" && "bg-gray-100 text-gray-900 font-medium",
+              pathname === "/dashboard/settings" && "bg-gray-100 text-gray-900 font-medium",
               isCollapsed && "px-2",
             )}
           >

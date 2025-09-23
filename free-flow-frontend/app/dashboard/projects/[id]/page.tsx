@@ -19,9 +19,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, FolderOpen, CheckSquare, Clock, User, ArrowLeft, Loader2 } from "lucide-react"
+import { Plus, FolderOpen, CheckSquare, Clock, User, ArrowLeft, Loader2, Calendar } from "lucide-react"
 import { projectsApi, tasksApi } from "@/lib/api"
 import { toast } from "sonner"
+import { DetailPanel } from "@/components/dashboard/details-panel"
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -30,6 +31,8 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string
 
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
   const [taskFormData, setTaskFormData] = useState({
     title: "",
     description: "",
@@ -38,12 +41,12 @@ export default function ProjectDetailPage() {
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ["project", projectId],
-    queryFn: () => projectsApi.getById(projectId),
+    queryFn: () => projectsApi.getProjectByID(projectId),
   })
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ["tasks", projectId],
-    queryFn: () => tasksApi.getByProject(projectId),
+    queryFn: () => tasksApi.getTaskByProjectID(projectId),
   })
 
   const createTaskMutation = useMutation({
@@ -72,13 +75,33 @@ export default function ProjectDetailPage() {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800"
-      case "in-progress":
+      case "in_progress":
         return "bg-blue-100 text-blue-800"
-      case "pending":
+      case "todo":
         return "bg-yellow-100 text-yellow-800"
+      case "on_hold":
+        return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-800"
+      case "medium":
+        return "bg-yellow-100 text-yellow-800"
+      case "low":
+        return "bg-green-100 text-green-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const handleTaskClick = (task: any) => {
+    setSelectedTask(task)
+    setIsTaskDetailOpen(true)
   }
 
   if (projectLoading) {
@@ -120,10 +143,16 @@ export default function ProjectDetailPage() {
           <CardTitle className="text-lg font-medium text-gray-900">Project Overview</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-900">Estimated Value</p>
-              <p className="text-lg font-semibold text-gray-700">${project?.data?.estimated_value}</p>
+              <p className="text-lg font-semibold text-gray-700">
+                {project?.data?.currency} {project?.data?.estimated_value?.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Progress</p>
+              <p className="text-lg font-semibold text-gray-700">{project?.data?.progress_percent || 0}%</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">Total Tasks</p>
@@ -131,9 +160,29 @@ export default function ProjectDetailPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">Status</p>
-              <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+              <Badge className={getStatusColor(project?.data?.status || "active")}>
+                {project?.data?.status || "active"}
+              </Badge>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Current Phase</p>
+              <p className="text-sm text-gray-600">{project?.data?.current_phase || "Not specified"}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Priority</p>
+              <Badge className={getPriorityColor(project?.data?.priority || "medium")}>
+                {project?.data?.priority || "medium"}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Your Cut</p>
+              <p className="text-sm text-gray-600">{project?.data?.your_cut_percent || 0}%</p>
+            </div>
+          </div>
+
           {project?.data?.notes && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm font-medium text-gray-900 mb-2">Notes</p>
@@ -238,32 +287,38 @@ export default function ProjectDetailPage() {
           </Card>
         ) : (
           tasks?.data?.map((task: any) => (
-            <Card key={task.id} className="border border-gray-200 shadow-sm bg-white">
+            <Card
+              key={task.id}
+              className="border border-gray-200 shadow-sm bg-white hover:shadow-md cursor-pointer transition-shadow"
+              onClick={() => handleTaskClick(task)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium text-gray-900">{task.title}</h3>
-                      <Badge className={getStatusColor(task.status || "pending")}>{task.status || "pending"}</Badge>
+                      <h3 className="font-medium text-gray-900 hover:text-blue-600">{task.title}</h3>
+                      <Badge className={getStatusColor(task.status || "todo")}>{task.status || "todo"}</Badge>
+                      <Badge className={getPriorityColor(task.priority || "medium")}>{task.priority || "medium"}</Badge>
                     </div>
                     <p className="text-gray-600 text-sm mb-3">{task.description}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {task.estimated_hours}h estimated
+                        {task.estimated_hours}h est. / {task.actual_hours || 0}h actual
                       </div>
-                      {task.assignee && (
+                      {task.assigned_associate && (
                         <div className="flex items-center gap-1">
                           <User className="h-4 w-4" />
-                          {task.assignee}
+                          Assigned
+                        </div>
+                      )}
+                      {task.due_date && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          Due {new Date(task.due_date).toLocaleDateString()}
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -271,6 +326,14 @@ export default function ProjectDetailPage() {
           ))
         )}
       </div>
+
+      {/* DetailPanel for task details */}
+      <DetailPanel
+        isOpen={isTaskDetailOpen}
+        onClose={() => setIsTaskDetailOpen(false)}
+        type="task"
+        data={selectedTask}
+      />
     </div>
   )
 }

@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,7 +21,9 @@ import {
   ListTodo,
   Calendar,
   User,
+  ExternalLink,
 } from "lucide-react"
+import { projectsApi } from "@/lib/api"
 
 interface DetailPanelProps {
   isOpen: boolean
@@ -30,9 +34,16 @@ interface DetailPanelProps {
 }
 
 export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanelProps) {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState(data)
   const [notes, setNotes] = useState("")
+
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: ["projects", data?.id],
+    queryFn: () => projectsApi.getProjectByClientID(data.id),
+    enabled: type === "client" && !!data?.id,
+  })
 
   useEffect(() => {
     setEditData(data)
@@ -55,6 +66,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const handleShare = () => {
     // TODO: Implement share functionality
     console.log("Sharing:", data)
+  }
+
+  const handleProjectClick = (projectId: string) => {
+    router.push(`/dashboard/projects/${projectId}`)
+    onClose() // Close the detail panel when navigating
   }
 
   const renderClientDetails = () => (
@@ -86,13 +102,29 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
 
       <div className="space-y-3">
         <h4 className="font-medium text-gray-900">Projects</h4>
-        {data.projects?.length ? (
+        {projectsLoading ? (
           <div className="space-y-2">
-            {data.projects.map((project: any) => (
-              <div key={project.id} className="p-3 bg-gray-50 rounded-lg">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-3 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : projects?.data?.length ? (
+          <div className="space-y-2">
+            {projects.data.map((project: any) => (
+              <div
+                key={project.id}
+                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
+                onClick={() => handleProjectClick(project.id)}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">{project.name}</span>
-                  <Badge variant="outline">${project.estimated_value}</Badge>
+                  <span className="font-medium text-sm group-hover:text-blue-600">{project.name}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">${project.estimated_value}</Badge>
+                    <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{project.description}</p>
               </div>
@@ -143,12 +175,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         )}
       </div>
 
-      <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Tasks</h4>
-        <div className="space-y-2">
-          {/* TODO: Fetch and display tasks */}
-          <p className="text-sm text-gray-500">Tasks will be loaded here</p>
-        </div>
+      <div className="pt-2">
+        <Button onClick={() => handleProjectClick(data.id)} variant="outline" className="w-full">
+          <ExternalLink className="h-4 w-4 mr-2" />
+          View Project Details & Tasks
+        </Button>
       </div>
     </div>
   )
@@ -168,11 +199,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Clock className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Estimated: {data.estimated_hours} hours</span>
+          <span className="text-sm">
+            Estimated: {data.estimated_hours}h | Actual: {data.actual_hours || 0}h
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <User className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Assigned to: {data.assignee || "Unassigned"}</span>
+          <span className="text-sm">{data.assigned_associate ? "Assigned to Associate" : "Unassigned"}</span>
+        </div>
+        {data.due_date && (
+          <div className="flex items-center gap-3">
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <span className="text-sm">Due: {new Date(data.due_date).toLocaleDateString()}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          <Calendar className="h-4 w-4 text-gray-400" />
+          <span className="text-sm">Created: {new Date(data.created_at).toLocaleDateString()}</span>
         </div>
       </div>
 
@@ -192,11 +235,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       </div>
 
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Status</h4>
+        <h4 className="font-medium text-gray-900">Status & Priority</h4>
         <div className="flex gap-2">
-          <Badge variant={data.status === "completed" ? "default" : "secondary"}>{data.status || "In Progress"}</Badge>
+          <Badge variant={data.status === "completed" ? "default" : "secondary"}>{data.status || "todo"}</Badge>
+          <Badge variant="outline" className={getPriorityColor(data.priority || "medium")}>
+            {data.priority || "medium"}
+          </Badge>
         </div>
       </div>
+
+      {data.completed_at && (
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-900">Completion</h4>
+          <p className="text-sm text-gray-600 bg-green-50 p-3 rounded-lg">
+            Completed on {new Date(data.completed_at).toLocaleDateString()}
+          </p>
+        </div>
+      )}
     </div>
   )
 
@@ -211,6 +266,19 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       />
     </div>
   )
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-800"
+      case "medium":
+        return "bg-yellow-100 text-yellow-800"
+      case "low":
+        return "bg-green-100 text-green-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
 
   return (
     <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-lg z-50 flex flex-col">
