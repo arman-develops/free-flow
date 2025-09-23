@@ -2,6 +2,7 @@ import { AssociatesTable } from "@/components/dashboard/associates-table";
 import { AssociateStats } from "@/components/dashboard/associate-stats";
 import { Button } from "@/components/ui/button";
 import { Plus, UserCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function AssociatesPage() {
   return (
@@ -21,7 +22,7 @@ export default function AssociatesPage() {
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add Associate
+              <Link href="/dashboard/associates/create">Add Associate</Link>
             </Button>
           </div>
 

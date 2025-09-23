@@ -12,10 +12,10 @@ import (
 )
 
 type AssociateInput struct {
-	Name   string `json:"name" binding:"required"`
-	Email  string `json:"email" binding:"required,email"`
-	Phone  string `json:"phone"`
-	Skills string `json:"skills"`
+	Name   string   `json:"name" binding:"required"`
+	Email  string   `json:"email" binding:"required,email"`
+	Phone  string   `json:"phone"`
+	Skills []string `json:"skills"`
 }
 
 func NewAssociate(c *gin.Context) {

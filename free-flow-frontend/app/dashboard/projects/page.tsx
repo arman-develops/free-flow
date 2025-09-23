@@ -1,34 +1,37 @@
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { ProjectsTable } from "@/components/dashboard/projects-table";
-import { Button } from "@/components/ui/button";
-import { Plus, FolderOpen } from "lucide-react";
+"use client"
 
-export default function ProjectsPage() {
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent } from "@/components/ui/card"
+import { CheckSquare, ArrowRight } from "lucide-react"
+
+export default function TasksPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push("/dashboard/clients")
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [router])
+
   return (
-    <div className="flex h-screen bg-background">
-      <main className="flex-1 overflow-auto">
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <FolderOpen className="h-8 w-8" />
-                Projects
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your projects and track their progress.
-              </p>
-            </div>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              New Project
-            </Button>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <CheckSquare className="h-16 w-16 text-muted-foreground mb-4" />
+          <h1 className="text-2xl font-bold text-foreground mb-2">Tasks Moved</h1>
+          <p className="text-muted-foreground mb-4">
+            Tasks are now organized under their respective projects. Navigate through Clients → Projects → Tasks.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Redirecting</span>
+            <ArrowRight className="h-4 w-4" />
+            <span>Clients</span>
           </div>
-
-          {/* Projects Table */}
-          <ProjectsTable />
-        </div>
-      </main>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

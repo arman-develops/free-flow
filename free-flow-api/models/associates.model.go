@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,7 @@ type Associate struct {
 	Email  string    `json:"email"`
 	Phone  string    `json:"phone"`
 
-	Skills string `json:"skills"` // "design,frontend,backend"
+	Skills pq.StringArray `json:"skills" gorm:"type:text[]"`
 
 	User     User      `json:"-" gorm:"foreignKey:UserID"`
 	Projects []Project `json:"projects" gorm:"many2many:project_associates;"`

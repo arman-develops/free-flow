@@ -13,7 +13,7 @@ func RegisterProjectRouter(rg *gin.RouterGroup) {
 	{
 		project.POST("/", controllers.NewProject)
 		project.GET("/", controllers.GetAllProjects)
-		project.GET("e/:id", controllers.GetProjectByEntityID)
+		project.GET("/e/:id", controllers.GetProjectByEntityID)
 		project.GET("/:id", controllers.GetProjectByID)
 		project.PUT("/:id", controllers.UpdateProject)
 		project.DELETE("/:id", controllers.DeleteProject)

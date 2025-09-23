@@ -26,21 +26,16 @@ export default function Dashboard() {
       <QuickActions />
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <RecentActivity />
-          <PriorityTasks />
-        </div>
+      {/* Analytics Overview */}
+      <AnalyticsOverview />
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <ProjectProgress />
         </div>
+        <div className="space-y-6">
+          <PriorityTasks />
+        </div>
       </div>
-
-      {/* Analytics Overview */}
-      <AnalyticsOverview />
-
-      {/* Financial Overview */}
-      <FinancialOverview />
     </div>
   );
 }

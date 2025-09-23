@@ -20,14 +20,6 @@ const stats = [
     description: "Active projects",
   },
   {
-    title: "Completed Tasks",
-    value: "156",
-    change: "+8%",
-    changeType: "positive" as const,
-    icon: CheckSquare,
-    description: "This month",
-  },
-  {
     title: "Active Clients",
     value: "18",
     change: "+3",
@@ -42,22 +34,6 @@ const stats = [
     changeType: "positive" as const,
     icon: DollarSign,
     description: "This month",
-  },
-  {
-    title: "Project Efficiency",
-    value: "94%",
-    change: "+2%",
-    changeType: "positive" as const,
-    icon: TrendingUp,
-    description: "On-time delivery",
-  },
-  {
-    title: "Avg. Task Time",
-    value: "2.4h",
-    change: "-0.3h",
-    changeType: "positive" as const,
-    icon: Clock,
-    description: "Per task",
   },
 ];
 
