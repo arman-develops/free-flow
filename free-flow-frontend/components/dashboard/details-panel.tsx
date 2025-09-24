@@ -424,6 +424,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="review">Review</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
             ) : (

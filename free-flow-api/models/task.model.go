@@ -14,6 +14,7 @@ const (
 	TaskStatusInProgress TaskStatus = "inprogress"
 	TaskStatusReview     TaskStatus = "review"
 	TaskStatusDone       TaskStatus = "done"
+	TaskStatusPaid       TaskStatus = "paid"
 )
 
 // Task represents individual tasks within a project
