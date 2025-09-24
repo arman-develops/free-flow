@@ -47,7 +47,7 @@ type Project struct {
 	Description  string        `json:"description"`
 	Status       ProjectStatus `json:"status" gorm:"default:'inquiry'"`
 	CurrentPhase ProjectPhase  `json:"current_phase" gorm:"default:'discovery'"`
-	Priority     string        `json:"priority" gorm:"default:'medium'"` // "low", "medium", "high"
+	Priority     string        `json:"priority" gorm:"default:'medium'"` // "low", "medium", "high", "urgent"
 
 	// Timeline
 	StartDate   *time.Time `json:"start_date"`
@@ -61,7 +61,7 @@ type Project struct {
 
 	// Outsourcing
 	IsOutsourced   bool    `json:"is_outsourced" gorm:"default:false"`
-	YourCutPercent float64 `json:"your_cut_percent" gorm:"default:30.0"` // e.g., 30.0 for 30%
+	YourCutPercent float64 `json:"your_cut_percent" gorm:"default:0.0"` // e.g., 30.0 for 30%
 
 	// Progress
 	ProgressPercent int    `json:"progress_percent" gorm:"default:0"`

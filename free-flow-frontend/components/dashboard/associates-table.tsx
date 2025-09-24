@@ -30,7 +30,7 @@ import {
   Phone,
   Star,
   DollarSign,
-  CheckCircle,
+  CheckSquare,
   Loader2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -94,26 +94,40 @@ export function AssociatesTable() {
     )
   }
 
-    if (error) {
-      return (
-        <Card>
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <p className="text-red-600">Failed to load associates</p>
-              <p className="text-sm text-muted-foreground">Please try again later</p>
-            </div>
-          </CardContent>
-        </Card>
-      )
-    }
-  
-    const associates = associateResponse?.data || []
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600">Failed to load associates</p>
+            <p className="text-sm text-muted-foreground">Please try again later</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const associates = associateResponse?.data || []
 
   const filteredAssociates = associates.filter(
     (associate: Associate) =>
       associate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       associate.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  if(associates?.length === 0) {
+    return (
+      <>
+        <Card className="border-dashed border-2 border-gray-300">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <CheckSquare className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">No associates yet</h3>
+            <p className="text-gray-500 text-center mb-4">Create your first associate to get started with this project.</p>
+          </CardContent>
+        </Card>
+      </>
+    )
+  }
 
   return (
     <Card>

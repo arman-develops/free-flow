@@ -107,19 +107,40 @@ export const projectsApi = {
   getProjectByID: async (id: string) => {
     const response = await apiClient.get(`/project/${id}`)
     return response.data
+  },
+
+  updateProject: async (projectID: string, data: any) => {
+    const response = await apiClient.put(`/project/${projectID}`, data)
+    return response.data
   }
 }
 
 export const tasksApi = {
   create: async (data: CreateTaskRequest): Promise<ApiResponse> => {
-    const response = await apiClient.post("/tasks", data)
+    const response = await apiClient.post("/task/", data)
     return response.data
   },
 
   getTaskByProjectID: async (projectID: string) => {
-    const response = await apiClient.get(`/tasks/p/${projectID}`)
+    const response = await apiClient.get(`/task/p/${projectID}`)
     return response.data
   },
+
+  getTaskByID: async (projectID: string) => {
+    const response = await apiClient.get(`/task/${projectID}`)
+    return response.data
+  },
+
+  updateTask: async (taskID: string, data: any) => {
+    const response = await apiClient.put(`/task/${taskID}`, data)
+    return response.data
+  },
+
+  deleteTask: async (projectID: string) => {
+    const response = await apiClient.delete(`/task/${projectID}`)
+    return response.data
+  }
+
 }
 
 export const associatesApi = {
@@ -130,6 +151,16 @@ export const associatesApi = {
 
   getAssociatesByUserID: async () => {
     const response = await apiClient.get("/associate/u")
+    return response.data
+  },
+
+  getAssociateByID: async (associateID: string) => {
+    const response = await apiClient.get(`/task/${associateID}`)
+    return response.data
+  },
+
+  updateAssociate: async (associateID: string, data: any) => {
+    const response = await apiClient.patch(`/task/${associateID}`, data)
     return response.data
   },
 }

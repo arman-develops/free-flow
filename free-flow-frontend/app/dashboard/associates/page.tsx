@@ -3,6 +3,7 @@ import { AssociateStats } from "@/components/dashboard/associate-stats";
 import { Button } from "@/components/ui/button";
 import { Plus, UserCheck } from "lucide-react";
 import Link from "next/link";
+import { CreateAssociateDialog } from "@/components/dashboard/create-associate-dialog";
 
 export default function AssociatesPage() {
   return (
@@ -31,6 +32,8 @@ export default function AssociatesPage() {
 
           {/* Associates Table */}
           <AssociatesTable />
+
+          <CreateAssociateDialog />
         </div>
       </main>
     </div>

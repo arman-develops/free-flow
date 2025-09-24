@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,6 +17,7 @@ import { toast } from "sonner"
 
 export default function CreateProjectPage() {
   const router = useRouter()
+  const {id} = useParams()
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     name: "",
@@ -24,11 +25,6 @@ export default function CreateProjectPage() {
     estimated_value: "",
     notes: "",
     entityID: "",
-  })
-
-  const { data: clients, isLoading: clientsLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: clientsApi.getClientsByUserID,
   })
 
   const createProjectMutation = useMutation({
@@ -48,6 +44,7 @@ export default function CreateProjectPage() {
     createProjectMutation.mutate({
       ...formData,
       estimated_value: Number.parseFloat(formData.estimated_value),
+      entityID: id as string
     })
   }
 
@@ -81,24 +78,6 @@ export default function CreateProjectPage() {
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="client" className="text-sm font-medium text-gray-900">
-                  Client *
-                </Label>
-                <Select value={formData.entityID} onValueChange={(value) => handleInputChange("entityID", value)}>
-                  <SelectTrigger className="h-10 border-gray-300 focus:border-gray-500">
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients?.data?.map((client: any) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.companyName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-900">
                   Project Name *

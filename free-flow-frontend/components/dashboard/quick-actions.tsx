@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, FolderPlus, UserPlus, CheckSquare } from "lucide-react";
+import { Plus, UserPlus, Building2, UserRoundCog } from "lucide-react";
 
 export function QuickActions() {
   return (
@@ -18,8 +18,8 @@ export function QuickActions() {
           className="flex items-center gap-2 h-12 bg-transparent"
           variant="outline"
         >
-          <FolderPlus className="h-4 w-4" />
-          New Project
+          <Building2 className="h-4 w-4" />
+          New Client
         </Button>
         <Button
           className="flex items-center gap-2 h-12 bg-transparent"
@@ -32,8 +32,8 @@ export function QuickActions() {
           className="flex items-center gap-2 h-12 bg-transparent"
           variant="outline"
         >
-          <CheckSquare className="h-4 w-4" />
-          Create Task
+          <UserRoundCog className="h-4 w-4" />
+          Preferences
         </Button>
       </CardContent>
     </Card>

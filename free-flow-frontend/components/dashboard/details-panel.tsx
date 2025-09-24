@@ -6,13 +6,15 @@ import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   X,
   Edit3,
   Save,
   Share2,
   CheckCircle2,
-  Clock,
   DollarSign,
   Mail,
   Phone,
@@ -22,13 +24,20 @@ import {
   Calendar,
   User,
   ExternalLink,
+  UserCheck,
+  Star,
 } from "lucide-react"
 import { projectsApi } from "@/lib/api"
+import { useUpdateProject } from "@/hooks/use-projects"
+import { useUpdateTask } from "@/hooks/use-tasks"
+import { useUpdateAssociate } from "@/hooks/use-associates"
+import { toast } from "sonner"
+import { useAssociates } from "@/hooks/use-associates"
 
 interface DetailPanelProps {
   isOpen: boolean
   onClose: () => void
-  type: "client" | "project" | "task" | null
+  type: "client" | "project" | "task" | "associate" | null
   data: any
   client?: any
 }
@@ -40,10 +49,16 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const [notes, setNotes] = useState("")
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ["projects", data?.id],
+    queryKey: [`projects`, data?.id],
     queryFn: () => projectsApi.getProjectByClientID(data.id),
     enabled: type === "client" && !!data?.id,
   })
+
+  const updateProject = useUpdateProject()
+  const updateTask = useUpdateTask()
+  const updateAssociate = useUpdateAssociate()
+  const { data: associatesResponse } = useAssociates()
+  const associates = associatesResponse?.success ? associatesResponse.data : []
 
   useEffect(() => {
     setEditData(data)
@@ -52,10 +67,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
 
   if (!isOpen || !type || !data) return null
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    console.log("Saving:", editData)
-    setIsEditing(false)
+  const handleSave = async () => {
+    try {
+      if (type === "project") {
+        await updateProject.mutateAsync({ id: data.id, data: editData })
+        toast.success("Project updated successfully")
+      } else if (type === "task") {
+        await updateTask.mutateAsync({ id: data.id, data: editData })
+        toast.success("Task updated successfully")
+      } else if (type === "associate") {
+        await updateAssociate.mutateAsync({ id: data.id, data: editData })
+        toast.success("Associate updated successfully")
+      }
+      setIsEditing(false)
+    } catch (error) {
+      toast.error("Failed to save changes")
+      console.error("Save error:", error)
+    }
   }
 
   const handleMarkComplete = () => {
@@ -71,6 +99,21 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const handleProjectClick = (projectId: string) => {
     router.push(`/dashboard/projects/${projectId}`)
     onClose() // Close the detail panel when navigating
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-800"
+      case "medium":
+        return "bg-yellow-100 text-yellow-800"
+      case "low":
+        return "bg-green-100 text-green-800"
+      case "urgent":
+        return "bg-orange-100 text-orange-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
   }
 
   const renderClientDetails = () => (
@@ -137,7 +180,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     </div>
   )
 
-  const renderProjectDetails = () => (
+  const renderEnhancedProjectDetails = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-green-100 rounded-lg">
@@ -150,14 +193,182 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <DollarSign className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Estimated Value: ${data.estimated_value}</span>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Status</Label>
+            {isEditing ? (
+              <Select
+                value={editData.status || "active"}
+                onValueChange={(value) => setEditData({ ...editData, status: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inquiry">Inquiry</SelectItem>
+                  <SelectItem value="proposal">proposal</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="completed">completed</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="outline" className="mt-1">
+                {data.status || "proposal"}
+              </Badge>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Priority</Label>
+            {isEditing ? (
+              <Select
+                value={editData.priority || "medium"}
+                onValueChange={(value) => setEditData({ ...editData, priority: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="outline" className={`mt-1 ${getPriorityColor(data.priority || "medium")}`}>
+                {data.priority || "medium"}
+              </Badge>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Calendar className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Created {new Date(data.CreatedAt || Date.now()).toLocaleDateString()}</span>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Current Phase</Label>
+            {isEditing ? (
+              <Select
+                value={editData.current_phase || "discovery"}
+                onValueChange={(value) => setEditData({ ...editData, current_phase: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="discovery">Discovery</SelectItem>
+                  <SelectItem value="design">Design</SelectItem>
+                  <SelectItem value="deevlopment">Development</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="delivery">Delivery</SelectItem>
+                  <SelectItem value="payment">Payment</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="outline" className={`mt-1`}>
+                {data.current_phase || "discovery"}
+              </Badge>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Progress</Label>
+            <div className="mt-1">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full"
+                    style={{ width: `${data.progress_percent || 0}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium">{data.progress_percent || 0}%</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Estimated Value</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                value={editData.estimated_value || ""}
+                onChange={(e) => setEditData({ ...editData, estimated_value: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <DollarSign className="h-3 w-3" />
+                {data.estimated_value ? `${data.currency || "$"}${data.estimated_value}` : "Not set"}
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Actual Value</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                value={editData.actual_value || ""}
+                onChange={(e) => setEditData({ ...editData, actual_value: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <DollarSign className="h-3 w-3" />
+                {data.actual_value ? `${data.currency || "$"}${data.actual_value}` : "Not set"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Deadline</Label>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={editData.deadline ? new Date(editData.deadline).toISOString().split("T")[0] : ""}
+                onChange={(e) => {
+                  const date = new Date(e.target.value);
+                  setEditData({ ...editData, deadline: date.toISOString() });
+                  console.log(date)
+                }}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Calendar className="h-3 w-3" />
+                {data.deadline ? new Date(data.deadline).toLocaleDateString() : "Not set"}
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Your Cut (%)</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={editData.your_cut_percent || ""}
+                onChange={(e) => setEditData({ ...editData, your_cut_percent: Number.parseInt(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{data.your_cut_percent || 0}%</p>
+            )}
+          </div>
+        </div>
+
+        {data.completed_at && (
+          <div>
+            <Label className="text-sm font-medium">Completed At</Label>
+            <div className="flex items-center gap-1 text-sm mt-1">
+              <CheckCircle2 className="h-3 w-3 text-green-600" />
+              {new Date(data.completed_at).toLocaleDateString()}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -184,7 +395,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     </div>
   )
 
-  const renderTaskDetails = () => (
+  const renderEnhancedTaskDetails = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-purple-100 rounded-lg">
@@ -197,26 +408,142 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Clock className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">
-            Estimated: {data.estimated_hours}h | Actual: {data.actual_hours || 0}h
-          </span>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Status</Label>
+            {isEditing ? (
+              <Select
+                value={editData.status || "todo"}
+                onValueChange={(value) => setEditData({ ...editData, status: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant={data.status === "completed" ? "default" : "secondary"} className="mt-1">
+                {data.status || "todo"}
+              </Badge>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Priority</Label>
+            {isEditing ? (
+              <Select
+                value={editData.priority || "medium"}
+                onValueChange={(value) => setEditData({ ...editData, priority: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="outline" className={`mt-1 ${getPriorityColor(data.priority || "medium")}`}>
+                {data.priority || "medium"}
+              </Badge>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <User className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">{data.assigned_associate ? "Assigned to Associate" : "Unassigned"}</span>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Estimated Hours</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                step="0.5"
+                value={editData.estimated_hours || ""}
+                onChange={(e) => setEditData({ ...editData, estimated_hours: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{data.estimated_hours || 0}h</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Actual Hours</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                step="0.5"
+                value={editData.actual_hours || ""}
+                onChange={(e) => setEditData({ ...editData, actual_hours: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{data.actual_hours || 0}h</p>
+            )}
+          </div>
         </div>
-        {data.due_date && (
-          <div className="flex items-center gap-3">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <span className="text-sm">Due: {new Date(data.due_date).toLocaleDateString()}</span>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Due Date</Label>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={editData.due_date ? new Date(editData.due_date).toISOString().split("T")[0] : ""}
+                onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Calendar className="h-3 w-3" />
+                {data.due_date ? new Date(data.due_date).toLocaleDateString() : "Not set"}
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Assigned Associate</Label>
+            {isEditing ? (
+              <Select
+                value={editData.assigned_to_associate || "unassigned"}
+                onValueChange={(value) =>
+                  setEditData({ ...editData, assigned_to_associate: value === "unassigned" ? null : value })
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select associate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {associates.map((associate: any) => (
+                    <SelectItem key={associate.id} value={associate.id}>
+                      {associate.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <User className="h-3 w-3" />
+                {data.assigned_associate?.name || "Unassigned"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {data.completed_at && (
+          <div>
+            <Label className="text-sm font-medium">Completed At</Label>
+            <div className="flex items-center gap-1 text-sm mt-1">
+              <CheckCircle2 className="h-3 w-3 text-green-600" />
+              {new Date(data.completed_at).toLocaleDateString()}
+            </div>
           </div>
         )}
-        <div className="flex items-center gap-3">
-          <Calendar className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Created: {new Date(data.created_at).toLocaleDateString()}</span>
-        </div>
       </div>
 
       <div className="space-y-3">
@@ -233,25 +560,162 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           </p>
         )}
       </div>
+    </div>
+  )
 
-      <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Status & Priority</h4>
-        <div className="flex gap-2">
-          <Badge variant={data.status === "completed" ? "default" : "secondary"}>{data.status || "todo"}</Badge>
-          <Badge variant="outline" className={getPriorityColor(data.priority || "medium")}>
-            {data.priority || "medium"}
-          </Badge>
+  const renderAssociateDetails = () => (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-indigo-100 rounded-lg">
+          <UserCheck className="h-5 w-5 text-indigo-600" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900">{data.name}</h3>
+          <p className="text-sm text-gray-500">Associate</p>
         </div>
       </div>
 
-      {data.completed_at && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-900">Completion</h4>
-          <p className="text-sm text-gray-600 bg-green-50 p-3 rounded-lg">
-            Completed on {new Date(data.completed_at).toLocaleDateString()}
-          </p>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Name</Label>
+            {isEditing ? (
+              <Input
+                value={editData.name || ""}
+                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                className="mt-1"
+              />
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{data.name}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Status</Label>
+            {isEditing ? (
+              <Select
+                value={editData.status || "active"}
+                onValueChange={(value) => setEditData({ ...editData, status: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="busy">Busy</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="outline" className="mt-1">
+                {data.status || "active"}
+              </Badge>
+            )}
+          </div>
         </div>
-      )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Email</Label>
+            {isEditing ? (
+              <Input
+                type="email"
+                value={editData.email || ""}
+                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Mail className="h-3 w-3" />
+                {data.email}
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Phone</Label>
+            {isEditing ? (
+              <Input
+                value={editData.phone || ""}
+                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Phone className="h-3 w-3" />
+                {data.phone}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium">Rating</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                max="5"
+                step="0.1"
+                value={editData.rating || ""}
+                onChange={(e) => setEditData({ ...editData, rating: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 mt-1">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{data.rating || 4.5}</span>
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Rate (%)</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={editData.rate || ""}
+                onChange={(e) => setEditData({ ...editData, rate: Number.parseInt(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <div className="flex items-center gap-1 mt-1">
+                <DollarSign className="h-3 w-3" />
+                <span className="font-medium">{data.rate || 70}%</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium">Skills</Label>
+          {isEditing ? (
+            <Input
+              value={Array.isArray(editData.skills) ? editData.skills.join(", ") : editData.skills || ""}
+              onChange={(e) =>
+                setEditData({
+                  ...editData,
+                  skills: e.target.value
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                })
+              }
+              placeholder="Enter skills separated by commas"
+              className="mt-1"
+            />
+          ) : (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {(data.skills || []).map((skill: string, index: number) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 
@@ -267,19 +731,6 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     </div>
   )
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800"
-      case "medium":
-        return "bg-yellow-100 text-yellow-800"
-      case "low":
-        return "bg-green-100 text-green-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
   return (
     <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-lg z-50 flex flex-col">
       {/* Header */}
@@ -289,8 +740,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={isEditing ? handleSave : () => setIsEditing(true)}
             className="text-gray-600 hover:text-gray-900"
+            disabled={updateProject.isPending || updateTask.isPending || updateAssociate.isPending}
           >
             {isEditing ? <Save className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
           </Button>
@@ -303,8 +755,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {type === "client" && renderClientDetails()}
-        {type === "project" && renderProjectDetails()}
-        {type === "task" && renderTaskDetails()}
+        {type === "project" && renderEnhancedProjectDetails()}
+        {type === "task" && renderEnhancedTaskDetails()}
+        {type === "associate" && renderAssociateDetails()}
 
         {renderNotes()}
       </div>
@@ -312,9 +765,15 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       {/* Actions */}
       <div className="p-4 border-t border-gray-200 space-y-2">
         {isEditing && (
-          <Button onClick={handleSave} className="w-full">
+          <Button
+            onClick={handleSave}
+            className="w-full"
+            disabled={updateProject.isPending || updateTask.isPending || updateAssociate.isPending}
+          >
             <Save className="h-4 w-4 mr-2" />
-            Save Changes
+            {updateProject.isPending || updateTask.isPending || updateAssociate.isPending
+              ? "Saving..."
+              : "Save Changes"}
           </Button>
         )}
 
