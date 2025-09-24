@@ -132,6 +132,7 @@ export const tasksApi = {
   },
 
   updateTask: async (taskID: string, data: any) => {
+    console.log(data)
     const response = await apiClient.put(`/task/${taskID}`, data)
     return response.data
   },

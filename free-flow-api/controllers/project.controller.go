@@ -240,11 +240,6 @@ func UpdateProject(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Model(&project).Updates(updates).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to update project")
-		return
-	}
-
 	// Commit transaction
 	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to commit transaction")

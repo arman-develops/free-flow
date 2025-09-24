@@ -423,11 +423,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                   <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="review">Review</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
-              <Badge variant={data.status === "completed" ? "default" : "secondary"} className="mt-1">
+              <Badge variant={data.status === "done" ? "default" : "secondary"} className="mt-1">
                 {data.status || "todo"}
               </Badge>
             )}
@@ -474,17 +474,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           </div>
           <div>
             <Label className="text-sm font-medium">Actual Hours</Label>
-            {isEditing ? (
-              <Input
-                type="number"
-                step="0.5"
-                value={editData.actual_hours || ""}
-                onChange={(e) => setEditData({ ...editData, actual_hours: Number.parseFloat(e.target.value) })}
-                className="mt-1"
-              />
-            ) : (
-              <p className="text-sm text-gray-600 mt-1">{data.actual_hours || 0}h</p>
-            )}
+            <p className="text-sm text-gray-600 mt-1">{data.actual_hours || 0}h</p>
           </div>
         </div>
 
@@ -495,7 +485,10 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
               <Input
                 type="date"
                 value={editData.due_date ? new Date(editData.due_date).toISOString().split("T")[0] : ""}
-                onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+                onChange={(e) => {
+                  const date = new Date(e.target.value);
+                  setEditData({ ...editData, due_date: date.toISOString() }); // send full datetime
+                }}
                 className="mt-1"
               />
             ) : (
@@ -531,6 +524,20 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 <User className="h-3 w-3" />
                 {data.assigned_associate?.name || "Unassigned"}
               </div>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Task Value</Label>
+            {isEditing ? (
+              <Input
+                type="number"
+                step="0.5"
+                value={editData.task_value || ""}
+                onChange={(e) => setEditData({ ...editData, task_value: Number.parseFloat(e.target.value) })}
+                className="mt-1"
+              />
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{data.task_value || 0} KES</p>
             )}
           </div>
         </div>

@@ -5,6 +5,7 @@ import (
 	"free-flow-api/models"
 	"free-flow-api/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,6 +17,17 @@ type TaskInput struct {
 	EstimatedHours      float64    `json:"estimated_hours"`
 	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate,omitempty"`
 	ProjectID           uuid.UUID  `json:"project_id" binding:"required"`
+}
+
+type TaskUpdateInput struct {
+	Title               *string            `json:"title,omitempty"`
+	Description         *string            `json:"description,omitempty"`
+	EstimatedHours      *float64           `json:"estimated_hours,omitempty"`
+	Status              *models.TaskStatus `json:"status,omitempty"`
+	Priority            *string            `json:"priority,omitempty"`
+	DueDate             *time.Time         `json:"due_date,omitempty"`
+	AssignedToAssociate *uuid.UUID         `json:"assigned_to_associate,omitempty"`
+	TaskValue           *float64           `json:"task_value,omitempty"`
 }
 
 func NewTask(c *gin.Context) {
@@ -137,7 +149,7 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	var updates TaskInput
+	var updates TaskUpdateInput
 	if err := c.ShouldBindJSON(&updates); err != nil {
 		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
@@ -149,8 +161,67 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Model(&task).Updates(updates).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+	//begin database transaction
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to start transaction")
+		return
+	}
+
+	updateMap := make(map[string]interface{})
+
+	// Handle basic field updates
+	if updates.Title != nil {
+		updateMap["title"] = *updates.Title
+	}
+	if updates.Description != nil {
+		updateMap["description"] = *updates.Description
+	}
+	if updates.EstimatedHours != nil {
+		updateMap["estimated_hours"] = *updates.EstimatedHours
+	}
+	if updates.TaskValue != nil {
+		updateMap["task_value"] = *updates.TaskValue
+	}
+	if updates.Priority != nil {
+		updateMap["priority"] = *updates.Priority
+	}
+	if updates.DueDate != nil {
+		updateMap["due_date"] = *updates.DueDate
+	}
+
+	if updates.Status != nil {
+		newStatus := *updates.Status
+
+		updateMap["status"] = newStatus
+
+		if newStatus == models.TaskStatusInProgress && task.Project.StartDate == nil {
+			now := time.Now()
+			updateMap["start_date"] = &now
+		}
+
+		if newStatus == models.TaskStatusDone {
+			now := time.Now()
+			updateMap["completed_at"] = &now
+
+			// compute actual hours if start_date is known
+			start := task.StartDate
+			if start != nil {
+				duration := now.Sub(*start).Hours()
+				updateMap["actual_hours"] = duration
+			}
+		}
+	}
+
+	// perform an update
+	if err := tx.Model(&task).Updates(updateMap).Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to update the project")
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to commit transaction")
 		return
 	}
 
