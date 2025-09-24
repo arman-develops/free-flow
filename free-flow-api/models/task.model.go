@@ -58,23 +58,50 @@ func (u *Task) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (t *Task) AfterSave(tx *gorm.DB) (err error) {
-	return updateProjectActualValue(tx, t.ProjectID)
+	return updateProjectStats(tx, t.ProjectID)
 }
 
 func (t *Task) AfterDelete(tx *gorm.DB) (err error) {
-	return updateProjectActualValue(tx, t.ProjectID)
+	return updateProjectStats(tx, t.ProjectID)
 }
 
-func updateProjectActualValue(tx *gorm.DB, projectID uuid.UUID) error {
-	var total float64
+func updateProjectStats(tx *gorm.DB, projectID uuid.UUID) error {
+	// 1. Calculate total task value
+	var totalValue float64
 	if err := tx.Model(&Task{}).
 		Where("project_id = ?", projectID).
 		Select("COALESCE(SUM(task_value), 0)").
-		Scan(&total).Error; err != nil {
+		Scan(&totalValue).Error; err != nil {
 		return err
 	}
 
+	// 2. Count total tasks
+	var totalTasks int64
+	if err := tx.Model(&Task{}).
+		Where("project_id = ?", projectID).
+		Count(&totalTasks).Error; err != nil {
+		return err
+	}
+
+	// 3. Count completed tasks (assuming "done" is the completed status)
+	var doneTasks int64
+	if err := tx.Model(&Task{}).
+		Where("project_id = ? AND status = ?", projectID, "done").
+		Count(&doneTasks).Error; err != nil {
+		return err
+	}
+
+	// 4. Compute progress
+	progress := 0
+	if totalTasks > 0 {
+		progress = int((float64(doneTasks) / float64(totalTasks)) * 100)
+	}
+
+	// 5. Update the project
 	return tx.Model(&Project{}).
 		Where("id = ?", projectID).
-		Update("actual_value", total).Error
+		Updates(map[string]interface{}{
+			"actual_value":     totalValue,
+			"progress_percent": progress,
+		}).Error
 }
