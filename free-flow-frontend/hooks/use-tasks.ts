@@ -1,13 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { tasksApi } from "@/lib/api"
 
-// export function useTasks() {
-//   return useQuery({
-//     queryKey: ["tasks"],
-//     queryFn: tasksApi.getTasksByUserID,
-//   })
-// }
-
 export function useTasksByProject(projectId: string) {
   return useQuery({
     queryKey: ["tasks", "project", projectId],

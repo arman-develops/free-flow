@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { associatesApi } from "@/lib/api";
+import { DetailPanel } from "./details-panel";
 
 interface Associate {
   id: string,
@@ -71,7 +72,8 @@ const getStatusBadge = (status: string) => {
 
 export function AssociatesTable() {
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [isAssociateDetailOpen, setIsAssociateDetailOpen] = useState(false)
+  const [selectedAssociate, setSelectedAssociate] = useState<any>(null)
   const {
     data: associateResponse,
     isLoading,
@@ -80,6 +82,11 @@ export function AssociatesTable() {
     queryKey: ["associates"],
     queryFn: associatesApi.getAssociatesByUserID
   })
+
+  const handleAssociateClick = (associate: any) => {
+    setSelectedAssociate(associate)
+    setIsAssociateDetailOpen(true)
+  }
 
     if (isLoading) {
     return (
@@ -162,7 +169,7 @@ export function AssociatesTable() {
           </TableHeader>
           <TableBody>
             {filteredAssociates.map((associate: Associate) => (
-              <TableRow key={associate.id}>
+              <TableRow key={associate.id} className="cursor-pointer transition-shadow" onClick={() => handleAssociateClick(associate)}>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
@@ -180,7 +187,7 @@ export function AssociatesTable() {
                     <div>
                       <div className="font-medium">{associate.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        Joined {associate.created_at}
+                        Joined: { new Date(associate.created_at).toISOString().substring(0,10)}
                       </div>
                     </div>
                   </div>
@@ -199,7 +206,7 @@ export function AssociatesTable() {
                 </TableCell>
                 <TableCell>
                   {associate.skills.map(skill => (
-                    <Badge variant="outline" className="px-1">{skill}</Badge>
+                    <Badge key={skill} variant="outline" className="px-1">{skill}</Badge>
                   ))}
                 </TableCell>
                 <TableCell>{getStatusBadge(associate?.status || "active")}</TableCell>
@@ -225,12 +232,12 @@ export function AssociatesTable() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAssociateClick(associate)}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Profile
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
+                        <Edit className="h-4 w-4 mr-2" onClick={() => handleAssociateClick(associate)} />
                         Edit Associate
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
@@ -245,6 +252,13 @@ export function AssociatesTable() {
           </TableBody>
         </Table>
       </CardContent>
+      {/* DetailPanel for associate details */}
+      <DetailPanel
+          isOpen={isAssociateDetailOpen}
+          onClose={() => setIsAssociateDetailOpen(false)}
+          type="associate"
+          data={selectedAssociate}
+        />
     </Card>
   );
 }

@@ -26,8 +26,9 @@ import {
   ExternalLink,
   UserCheck,
   Star,
+  Percent,
 } from "lucide-react"
-import { projectsApi } from "@/lib/api"
+import { projectsApi, tasksApi } from "@/lib/api"
 import { useUpdateProject } from "@/hooks/use-projects"
 import { useUpdateTask } from "@/hooks/use-tasks"
 import { useUpdateAssociate } from "@/hooks/use-associates"
@@ -54,11 +55,18 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     enabled: type === "client" && !!data?.id,
   })
 
+  const {data: associateTasks, isLoading: tasksLoading} = useQuery ({
+      queryKey: ['taskByAssociate', data?.id],
+      queryFn: () => tasksApi.getTasksByAssociateID(data.id),
+      enabled: type === "associate" && !!data?.id
+  })
+
   const updateProject = useUpdateProject()
   const updateTask = useUpdateTask()
   const updateAssociate = useUpdateAssociate()
   const { data: associatesResponse } = useAssociates()
   const associates = associatesResponse?.success ? associatesResponse.data : []
+  const tasks = associateTasks?.success ? associateTasks.data : []
 
   useEffect(() => {
     setEditData(data)
@@ -523,7 +531,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <User className="h-3 w-3" />
-                {data.assigned_associate?.name || "Unassigned"}
+                {data.assigned_to_associate 
+                ? associates.find((a:any) => a.id === data.assigned_to_associate)?.name || "Unknown"
+                : "Unassigned"}
               </div>
             )}
           </div>
@@ -587,142 +597,93 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium">Name</Label>
-            {isEditing ? (
-              <Input
-                value={editData.name || ""}
-                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                className="mt-1"
-              />
-            ) : (
               <p className="text-sm text-gray-600 mt-1">{data.name}</p>
-            )}
           </div>
           <div>
             <Label className="text-sm font-medium">Status</Label>
-            {isEditing ? (
-              <Select
-                value={editData.status || "active"}
-                onValueChange={(value) => setEditData({ ...editData, status: value })}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="busy">Busy</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge variant="outline" className="mt-1">
+              <Badge variant="outline" className="mt-1 caret-emerald-400">
                 {data.status || "active"}
               </Badge>
-            )}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium">Email</Label>
-            {isEditing ? (
-              <Input
-                type="email"
-                value={editData.email || ""}
-                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                className="mt-1"
-              />
-            ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <Mail className="h-3 w-3" />
                 {data.email}
               </div>
-            )}
           </div>
           <div>
             <Label className="text-sm font-medium">Phone</Label>
-            {isEditing ? (
-              <Input
-                value={editData.phone || ""}
-                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                className="mt-1"
-              />
-            ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <Phone className="h-3 w-3" />
                 {data.phone}
               </div>
-            )}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium">Rating</Label>
-            {isEditing ? (
-              <Input
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={editData.rating || ""}
-                onChange={(e) => setEditData({ ...editData, rating: Number.parseFloat(e.target.value) })}
-                className="mt-1"
-              />
-            ) : (
               <div className="flex items-center gap-1 mt-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-medium">{data.rating || 4.5}</span>
-              </div>
-            )}
+              </div>          
           </div>
-          <div>
-            <Label className="text-sm font-medium">Rate (%)</Label>
-            {isEditing ? (
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={editData.rate || ""}
-                onChange={(e) => setEditData({ ...editData, rate: Number.parseInt(e.target.value) })}
-                className="mt-1"
-              />
-            ) : (
+          <div>            
               <div className="flex items-center gap-1 mt-1">
-                <DollarSign className="h-3 w-3" />
-                <span className="font-medium">{data.rate || 70}%</span>
-              </div>
-            )}
+                <Percent className="h-3 w-3" />
+                <span className="font-medium">{data.rate || 70}</span>
+              </div>            
           </div>
         </div>
 
         <div>
-          <Label className="text-sm font-medium">Skills</Label>
-          {isEditing ? (
-            <Input
-              value={Array.isArray(editData.skills) ? editData.skills.join(", ") : editData.skills || ""}
-              onChange={(e) =>
-                setEditData({
-                  ...editData,
-                  skills: e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                })
-              }
-              placeholder="Enter skills separated by commas"
-              className="mt-1"
-            />
-          ) : (
             <div className="flex flex-wrap gap-1 mt-1">
+              <Label className="text-sm font-medium">Skills</Label>
               {(data.skills || []).map((skill: string, index: number) => (
                 <Badge key={index} variant="outline" className="text-xs">
                   {skill}
                 </Badge>
               ))}
             </div>
-          )}
         </div>
+      </div>
+      <div className="space-y-3">
+        <h4 className="font-medium text-gray-900">Tasks</h4>
+        {tasksLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-3 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : tasks.filter((task: any) => task.assigned_to_associate === data.id).length > 0 ? (
+          <div className="space-y-2">
+            {
+            tasks.filter((task: any) => task.assigned_to_associate === data.id)
+            .map((task: any) => (
+              <div
+                key={task.id}
+                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm group-hover:text-blue-600">{task.title}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">${task.task_value}</Badge>
+                    <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No tasks yet</p>
+        )}
       </div>
     </div>
   )

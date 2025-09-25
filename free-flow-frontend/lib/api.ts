@@ -121,6 +121,11 @@ export const tasksApi = {
     return response.data
   },
 
+  getTasksByAssociateID: async (associateID: string) => {
+    const response = await apiClient.get("/task/")
+    return response.data
+  },
+
   getTaskByProjectID: async (projectID: string) => {
     const response = await apiClient.get(`/task/p/${projectID}`)
     return response.data

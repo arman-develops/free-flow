@@ -190,6 +190,10 @@ func UpdateTask(c *gin.Context) {
 		updateMap["due_date"] = *updates.DueDate
 	}
 
+	if updates.AssignedToAssociate != nil {
+		updateMap["assigned_to_associate"] = *updates.AssignedToAssociate
+	}
+
 	if updates.Status != nil {
 		newStatus := *updates.Status
 
