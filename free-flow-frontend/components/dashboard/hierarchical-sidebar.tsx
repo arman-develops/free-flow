@@ -254,6 +254,21 @@ export function HierarchicalSidebar() {
               {!isCollapsed && <span>Associates</span>}
             </Button>
           </Link>
+
+          {/* Finances */}
+          <Link href="/dashboard/finances">
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
+                pathname.startsWith("/finances") && "bg-gray-100 text-gray-900 font-medium",
+                isCollapsed && "px-2",
+              )}
+            >
+              <UserCheck className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span>Finances</span>}
+            </Button>
+          </Link>
         </div>
       </nav>
 

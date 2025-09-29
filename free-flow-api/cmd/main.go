@@ -40,6 +40,9 @@ func main() {
 		routes.RegisterAssociateRouter(api)
 		routes.RegisterTaskRouter(api)
 		routes.RegisterProjectRouter(api)
+		routes.RegisterInvoiceRouter(api)
+		routes.RegisterExpenseRouter(api)
+		routes.RegisterPaymentRouter(api)
 	}
 	log.Println("Server is up and runnig")
 	r.Run()
