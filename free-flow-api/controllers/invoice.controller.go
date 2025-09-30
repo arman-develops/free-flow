@@ -20,7 +20,7 @@ type InvoiceInput struct {
 	Description    *string   `json:"description"`
 	Notes          *string   `json:"notes,omitempty"`
 	PaymentMethod  string    `json:"payment_method"`
-	TransactionRef string    `json:"transaction_ref"`
+	TransactionRef *string   `json:"transaction_ref"`
 }
 
 // CreateInvoice godoc
@@ -152,7 +152,7 @@ func UpdateInvoice(c *gin.Context) {
 	if input.PaymentMethod != "" {
 		invoice.PaymentMethod = input.PaymentMethod
 	}
-	if input.TransactionRef != "" {
+	if input.TransactionRef != nil {
 		invoice.TransactionRef = input.TransactionRef
 	}
 

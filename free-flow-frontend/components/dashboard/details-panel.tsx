@@ -400,7 +400,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       <div>
         <AddExpenseDialog data={data} />
         <AddPaymentDialog />
-        <CreateInvoiceDialog />
+        <CreateInvoiceDialog data={data} />
       </div>
 
       <div className="pt-2">

@@ -60,6 +60,16 @@ interface CreateExpenseRequest {
   vendor: string
 }
 
+interface CreateInvoiceRequest {
+  project_id: string
+  currency: string
+  status: string
+  due_date: string
+  description: string
+  notes: string
+  payment_method: string
+}
+
 interface ApiResponse {
   success: boolean
   data: {
@@ -184,6 +194,13 @@ export const associatesApi = {
 export const expensesApi = {
   create: async (data: CreateExpenseRequest) => {
     const response = await apiClient.post("/expense/", data)
+    return response.data
+  }
+}
+
+export const invoiceApi = {
+  create: async (data: CreateInvoiceRequest) => {
+    const response = await apiClient.post("/invoice/", data)
     return response.data
   }
 }

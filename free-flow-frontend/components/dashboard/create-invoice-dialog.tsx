@@ -21,29 +21,44 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, FileText, Plus } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { useMutation } from "@tanstack/react-query"
+import { invoiceApi } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 
 interface CreateInvoiceDialogProps {
   trigger?: React.ReactNode
+  data: any
 }
 
-export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
+export function CreateInvoiceDialog({ trigger,data }: CreateInvoiceDialogProps) {
   const [open, setOpen] = useState(false)
-  const [dueDate, setDueDate] = useState<Date>()
+  const [due_date, setDueDate] = useState<Date>()
   const [formData, setFormData] = useState({
-    projectId: "",
+    project_id: data.id,
     amount: "",
     currency: "USD",
     status: "pending",
     description: "",
     notes: "",
-    paymentMethod: "",
+    payment_method: "",
     transactionRef: "",
+  })
+
+  const createinvoiceMutation = useMutation({
+    mutationFn: invoiceApi.create,
+    onSuccess: () => {
+      toast.success("Expenses added successfully!")
+      queryClient.invalidateQueries({ queryKey: ["invoices"] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to create client")
+    },
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!dueDate) {
+    if (!due_date) {
       toast.error("Please select a due date")
       return
     }
@@ -53,22 +68,22 @@ export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
       const invoiceData = {
         ...formData,
         amount: Number.parseFloat(formData.amount),
-        dueDate: dueDate.toISOString(),
+        due_date: due_date.toISOString(),
       }
 
-      console.log("Creating invoice:", invoiceData)
+      createinvoiceMutation.mutate(invoiceData)
       toast.success("Invoice created successfully!")
       setOpen(false)
 
       // Reset form
       setFormData({
-        projectId: "",
+        project_id: "",
         amount: "",
         currency: "USD",
         status: "pending",
         description: "",
         notes: "",
-        paymentMethod: "",
+        payment_method: "",
         transactionRef: "",
       })
       setDueDate(undefined)
@@ -100,13 +115,7 @@ export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="projectId">Project ID *</Label>
-              <Input
-                id="projectId"
-                value={formData.projectId}
-                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                placeholder="Enter project ID"
-                required
-              />
+              <div>{data.name}</div>
             </div>
             <div>
               <Label htmlFor="status">Status</Label>
@@ -163,14 +172,14 @@ export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
+                  className={cn("w-full justify-start text-left font-normal", !due_date && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, "PPP") : "Select due date"}
+                  {due_date ? format(due_date, "PPP") : "Select due date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} initialFocus />
+                <Calendar mode="single" selected={due_date} onSelect={setDueDate} />
               </PopoverContent>
             </Popover>
           </div>
@@ -202,8 +211,8 @@ export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
             <div>
               <Label htmlFor="paymentMethod">Payment Method</Label>
               <Select
-                value={formData.paymentMethod}
-                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
+                value={formData.payment_method}
+                onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select method" />

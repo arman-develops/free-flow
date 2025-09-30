@@ -32,8 +32,8 @@ type Invoice struct {
 	Notes       string `json:"notes"`
 
 	// Payment tracking
-	PaymentMethod  string `json:"payment_method"`  // "mpesa", "bank", "cash"
-	TransactionRef string `json:"transaction_ref"` // M-Pesa code, bank ref, etc.
+	PaymentMethod  string  `json:"payment_method"`  // "mpesa", "bank", "cash"
+	TransactionRef *string `json:"transaction_ref"` // M-Pesa code, bank ref, etc.
 
 	// Relationships
 	Project Project `json:"-" gorm:"foreignKey:ProjectID"`
