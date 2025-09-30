@@ -5,6 +5,7 @@ import (
 	"free-flow-api/models"
 	"free-flow-api/utils"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,6 @@ import (
 
 type InvoiceInput struct {
 	ProjectID      uuid.UUID `json:"project_id"`
-	Amount         int64     `json:"amount"`
 	Currency       *string   `json:"currency,omitempty"`
 	Status         *string   `json:"status,omitempty"`
 	DueDate        time.Time `json:"due_date"`
@@ -37,14 +37,27 @@ func CreateInvoice(c *gin.Context) {
 		return
 	}
 
+	var project models.Project
+	if err := config.DB.First(&project, "id = ?", input.ProjectID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Project Not found")
+		return
+	}
+
+	prefix := "INV-FF-"
+	id := uuid.New().String()
+	short_id := id[:8]
+	inv := prefix + short_id
+	invoice_number := strings.ToUpper(inv)
+
 	invoice := models.Invoice{
 		ProjectID:      input.ProjectID,
-		Amount:         float64(input.Amount),
-		Currency:       utils.StringOrDefault(input.Currency, "KES"),
+		Amount:         project.ActualValue,
+		Currency:       utils.StringOrDefault(&project.Currency, *input.Currency),
 		Status:         utils.StringOrDefault(input.Status, "draft"),
 		DueDate:        input.DueDate,
 		Description:    utils.StringOrDefault(input.Description, ""),
 		Notes:          utils.StringOrDefault(input.Notes, ""),
+		InvoiceNumber:  invoice_number,
 		PaymentMethod:  input.PaymentMethod,
 		TransactionRef: input.TransactionRef,
 		IssueDate:      time.Now(),
@@ -55,7 +68,11 @@ func CreateInvoice(c *gin.Context) {
 		return
 	}
 
-	utils.SendSuccessResponse(c, http.StatusCreated, invoice)
+	data := map[string]string{
+		"message": "invoice Created Successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
 
 // GetInvoices godoc
@@ -116,9 +133,6 @@ func UpdateInvoice(c *gin.Context) {
 		return
 	}
 
-	if input.Amount != 0 {
-		invoice.Amount = float64(input.Amount)
-	}
 	if input.Currency != nil {
 		invoice.Currency = *input.Currency
 	}

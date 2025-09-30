@@ -15,7 +15,7 @@ type Invoice struct {
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
 	ProjectID     uuid.UUID `json:"project_id" gorm:"not null"`
-	InvoiceNumber string    `json:"invoice_number" gorm:"uniqueIndex"`
+	InvoiceNumber string    `gorm:"uniqueIndex"`
 	Amount        float64   `json:"amount" gorm:"not null"`
 	Currency      string    `json:"currency" gorm:"default:'KES'"`
 

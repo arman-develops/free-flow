@@ -51,7 +51,11 @@ func CreateExpense(c *gin.Context) {
 		return
 	}
 
-	utils.SendSuccessResponse(c, http.StatusCreated, expense)
+	data := map[string]string{
+		"message": "Project Created Successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
 
 // GetExpenses godoc

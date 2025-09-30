@@ -41,7 +41,7 @@ type Task struct {
 	ActualHours    float64 `json:"actual_hours"`
 
 	// finances
-	TaskValue float64 `json:"task_value"`
+	TaskValue *float64 `json:"task_value"`
 
 	// Assignment (for outsourced work)
 	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate"` // Foreign key to Associate

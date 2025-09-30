@@ -23,5 +23,14 @@ type Payment struct {
 
 	Status string `json:"status"` // "pending", "confirmed", "failed"
 
+	Notes *string `json:"notes"`
+
 	Invoice Invoice `json:"-" gorm:"foreignKey:InvoiceID"`
+}
+
+func (u *Payment) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.ID == uuid.Nil {
+		u.ID = uuid.New()
+	}
+	return nil
 }

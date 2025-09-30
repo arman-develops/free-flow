@@ -19,6 +19,7 @@ type PaymentInput struct {
 	TransactionRef string    `json:"transaction_ref"` // mpesa code, bank ref, etc.
 	PaidDate       time.Time `json:"paid_date"`
 	Status         *string   `json:"status,omitempty"` // "pending", "confirmed", "failed"
+	Notes          *string   `json:"notes,omitempty"`
 }
 
 // CreatePayment godoc
@@ -43,6 +44,7 @@ func CreatePayment(c *gin.Context) {
 		TransactionRef: input.TransactionRef,
 		PaidDate:       utils.TimeOrNow(input.PaidDate),
 		Status:         utils.StringOrDefault(input.Status, "pending"),
+		Notes:          input.Notes,
 	}
 
 	if err := config.DB.Create(&payment).Error; err != nil {
@@ -50,7 +52,11 @@ func CreatePayment(c *gin.Context) {
 		return
 	}
 
-	utils.SendSuccessResponse(c, http.StatusCreated, payment)
+	data := map[string]string{
+		"message": "Payment Added Successfully",
+	}
+
+	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
 
 // GetPayments godoc

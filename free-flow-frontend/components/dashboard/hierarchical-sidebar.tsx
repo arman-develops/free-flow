@@ -21,6 +21,7 @@ import {
   Building2,
   FolderOpen,
   Plus,
+  DollarSignIcon,
 } from "lucide-react"
 
 interface Client {
@@ -246,7 +247,7 @@ export function HierarchicalSidebar() {
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
-                pathname.startsWith("/associates") && "bg-gray-100 text-gray-900 font-medium",
+                pathname.startsWith("/dashboard/associates") && "bg-gray-100 text-gray-900 font-medium",
                 isCollapsed && "px-2",
               )}
             >
@@ -261,11 +262,11 @@ export function HierarchicalSidebar() {
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
-                pathname.startsWith("/finances") && "bg-gray-100 text-gray-900 font-medium",
+                pathname.startsWith("/dashboard/finances") && "bg-gray-100 text-gray-900 font-medium",
                 isCollapsed && "px-2",
               )}
             >
-              <UserCheck className="h-4 w-4 flex-shrink-0" />
+              <DollarSignIcon className="h-4 w-4 flex-shrink-0" />
               {!isCollapsed && <span>Finances</span>}
             </Button>
           </Link>

@@ -1,8 +1,10 @@
-import { FinanceStats } from "@/components/dashboard/finance-stats";
-import { PaymentsTable } from "@/components/dashboard/payments-table";
-import { ExpensesTable } from "@/components/dashboard/expenses-table";
-import { Button } from "@/components/ui/button";
-import { Plus, DollarSign } from "lucide-react";
+import { FinanceStats } from "@/components/dashboard/finance-stats"
+import { PaymentsTable } from "@/components/dashboard/payments-table"
+import { ExpensesTable } from "@/components/dashboard/expenses-table"
+import { DollarSign } from "lucide-react"
+import { CreateInvoiceDialog } from "@/components/dashboard/create-invoice-dialog"
+import { AddPaymentDialog } from "@/components/dashboard/add-payment-dialog"
+import { AddExpenseDialog } from "@/components/dashboard/add-expense-dialog"
 
 export default function FinancesPage() {
   return (
@@ -16,22 +18,12 @@ export default function FinancesPage() {
                 <DollarSign className="h-8 w-8" />
                 Finances
               </h1>
-              <p className="text-muted-foreground">
-                Track payments, expenses, and financial performance.
-              </p>
+              <p className="text-muted-foreground">Track payments, expenses, and financial performance.</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 bg-transparent"
-              >
-                <Plus className="h-4 w-4" />
-                Add Expense
-              </Button>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Record Payment
-              </Button>
+              <AddExpenseDialog />
+              <AddPaymentDialog />
+              <CreateInvoiceDialog />
             </div>
           </div>
 
@@ -46,5 +38,5 @@ export default function FinancesPage() {
         </div>
       </main>
     </div>
-  );
+  )
 }

@@ -25,3 +25,10 @@ type Expense struct {
 	// Relationships
 	Project Project `json:"-" gorm:"foreignKey:ProjectID"`
 }
+
+func (u *Expense) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.ID == uuid.Nil {
+		u.ID = uuid.New()
+	}
+	return nil
+}

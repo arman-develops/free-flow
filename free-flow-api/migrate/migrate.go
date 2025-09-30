@@ -12,13 +12,16 @@ func init() {
 }
 
 func main() {
-	// config.DB.Migrator().DropTable(&models.Associate{})
+	// config.DB.Migrator().DropTable(&models.Invoice{})
 	if err := config.DB.AutoMigrate(
 		&models.User{},
 		&models.Entity{},
 		&models.Associate{},
 		&models.Project{},
 		&models.Task{},
+		&models.Expense{},
+		&models.Invoice{},
+		&models.Payment{},
 	); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}
