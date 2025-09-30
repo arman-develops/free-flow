@@ -20,6 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, CreditCard, Plus, Smartphone } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { useMutation } from "@tanstack/react-query"
+import { paymentApi } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 
 interface AddPaymentDialogProps {
   trigger?: React.ReactNode
@@ -34,9 +37,20 @@ export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
     amount: "",
     currency: "USD",
     method: "",
-    transactionRef: "",
-    status: "completed",
+    transaction_ref: "",
+    status: "confirmed",
     phoneNumber: "", // For M-PESA integration
+  })
+
+  const createPaymentMutation = useMutation({
+    mutationFn: paymentApi.create,
+    onSuccess: () => {
+      toast.success("Expenses added successfully!")
+      queryClient.invalidateQueries({ queryKey: ["payments"] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to record payment")
+    },
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +83,7 @@ export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
         await new Promise((resolve) => setTimeout(resolve, 2000))
       }
 
+      createPaymentMutation.mutate(paymentData)
       toast.success("Payment recorded successfully!")
       setOpen(false)
 
@@ -78,8 +93,8 @@ export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
         amount: "",
         currency: "USD",
         method: "",
-        transactionRef: "",
-        status: "completed",
+        transaction_ref: "",
+        status: "confirmed",
         phoneNumber: "",
       })
       setPaidDate(undefined)
@@ -112,23 +127,19 @@ export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="invoice_id">Invoice ID *</Label>
-              <Input
-                id="invoice_id"
-                value={formData.invoice_id}
-                onChange={(e) => setFormData({ ...formData, invoice_id: e.target.value })}
-                placeholder="INV-001"
-                required
-              />
+              <Label htmlFor="invoice_id">Invoice Number *</Label>
+              <div className="font-semibold text-lg mt-1">
+                {data.invoice_number}
+              </div>
             </div>
             <div>
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Pending" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>
                   <SelectItem value="refunded">Refunded</SelectItem>
@@ -227,8 +238,8 @@ export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
             <Label htmlFor="transactionRef">Transaction Reference</Label>
             <Input
               id="transactionRef"
-              value={formData.transactionRef}
-              onChange={(e) => setFormData({ ...formData, transactionRef: e.target.value })}
+              value={formData.transaction_ref}
+              onChange={(e) => setFormData({ ...formData, transaction_ref: e.target.value })}
               placeholder="Transaction ID or reference"
             />
           </div>

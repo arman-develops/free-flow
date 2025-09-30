@@ -70,6 +70,16 @@ interface CreateInvoiceRequest {
   payment_method: string
 }
 
+interface CreatePaymentRequest {
+  invoice_id: string
+  amount: number
+  currency: string
+  method: string
+  transaction_ref: string
+  status: string
+  phoneNumber: string
+}
+
 interface ApiResponse {
   success: boolean
   data: {
@@ -208,4 +218,11 @@ export const invoiceApi = {
     const response = await apiClient.get("/invoice/u")
     return response.data
   }
+}
+
+export const paymentApi = {
+  create: async (data: CreatePaymentRequest) => {
+    const response = await apiClient.post("/payment/", data)
+    return response.data
+  },
 }

@@ -50,7 +50,7 @@ export function AddExpenseDialog({ trigger, data }: AddExpenseDialogProps) {
       queryClient.invalidateQueries({ queryKey: ["expenses"] })
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to create client")
+      toast.error(error.response?.data?.message || "Failed to add expense")
     },
   })
 
