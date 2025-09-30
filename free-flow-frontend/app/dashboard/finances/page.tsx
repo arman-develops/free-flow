@@ -2,11 +2,12 @@ import { FinanceStats } from "@/components/dashboard/finance-stats"
 import { PaymentsTable } from "@/components/dashboard/payments-table"
 import { ExpensesTable } from "@/components/dashboard/expenses-table"
 import { DollarSign } from "lucide-react"
+import { InvoicesTable } from "@/components/dashboard/invoices-table"
 
 export default function FinancesPage() {
   return (
     <div className="flex h-screen bg-background">
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1">
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -27,6 +28,8 @@ export default function FinancesPage() {
             <PaymentsTable />
             <ExpensesTable />
           </div>
+
+          <InvoicesTable />
         </div>
       </main>
     </div>

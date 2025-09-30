@@ -23,13 +23,14 @@ import { cn } from "@/lib/utils"
 
 interface AddPaymentDialogProps {
   trigger?: React.ReactNode
+  data: any
 }
 
-export function AddPaymentDialog({ trigger }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ trigger, data }: AddPaymentDialogProps) {
   const [open, setOpen] = useState(false)
   const [paidDate, setPaidDate] = useState<Date>()
   const [formData, setFormData] = useState({
-    invoiceId: "",
+    invoice_id: data.id,
     amount: "",
     currency: "USD",
     method: "",
@@ -73,7 +74,7 @@ export function AddPaymentDialog({ trigger }: AddPaymentDialogProps) {
 
       // Reset form
       setFormData({
-        invoiceId: "",
+        invoice_id: "",
         amount: "",
         currency: "USD",
         method: "",
@@ -111,11 +112,11 @@ export function AddPaymentDialog({ trigger }: AddPaymentDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="invoiceId">Invoice ID *</Label>
+              <Label htmlFor="invoice_id">Invoice ID *</Label>
               <Input
-                id="invoiceId"
-                value={formData.invoiceId}
-                onChange={(e) => setFormData({ ...formData, invoiceId: e.target.value })}
+                id="invoice_id"
+                value={formData.invoice_id}
+                onChange={(e) => setFormData({ ...formData, invoice_id: e.target.value })}
                 placeholder="INV-001"
                 required
               />

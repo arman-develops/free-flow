@@ -202,5 +202,10 @@ export const invoiceApi = {
   create: async (data: CreateInvoiceRequest) => {
     const response = await apiClient.post("/invoice/", data)
     return response.data
+  },
+
+  getInvoicesByUser: async () => {
+    const response = await apiClient.get("/invoice/u")
+    return response.data
   }
 }

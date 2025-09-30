@@ -27,6 +27,10 @@ import {
   UserCheck,
   Star,
   Percent,
+  FileText,
+  CreditCard,
+  Clock,
+  AlertCircle,
 } from "lucide-react"
 import { projectsApi, tasksApi } from "@/lib/api"
 import { useUpdateProject } from "@/hooks/use-projects"
@@ -34,14 +38,14 @@ import { useUpdateTask } from "@/hooks/use-tasks"
 import { useUpdateAssociate } from "@/hooks/use-associates"
 import { toast } from "sonner"
 import { useAssociates } from "@/hooks/use-associates"
-import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { AddExpenseDialog } from "./add-expense-dialog"
+import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { AddPaymentDialog } from "./add-payment-dialog"
 
 interface DetailPanelProps {
   isOpen: boolean
   onClose: () => void
-  type: "client" | "project" | "task" | "associate" | null
+  type: "client" | "project" | "task" | "associate" | "invoice" | null
   data: any
   client?: any
 }
@@ -58,10 +62,10 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     enabled: type === "client" && !!data?.id,
   })
 
-  const {data: associateTasks, isLoading: tasksLoading} = useQuery ({
-      queryKey: ['taskByAssociate', data?.id],
-      queryFn: () => tasksApi.getTasksByAssociateID(data.id),
-      enabled: type === "associate" && !!data?.id
+  const { data: associateTasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ["taskByAssociate", data?.id],
+    queryFn: () => tasksApi.getTasksByAssociateID(data.id),
+    enabled: type === "associate" && !!data?.id,
   })
 
   const updateProject = useUpdateProject()
@@ -125,6 +129,30 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800"
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "overdue":
+        return "bg-red-100 text-red-800"
+      case "cancelled":
+        return "bg-gray-100 text-gray-800"
+      default:
+        return "bg-blue-100 text-blue-800"
+    }
+  }
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return `${currency} ${amount.toLocaleString()}`
+  }
+
+  const isOverdue = (dueDate: string, status: string) => {
+    if (status === "paid" || status === "cancelled") return false
+    return new Date(dueDate) < new Date()
   }
 
   const renderClientDetails = () => (
@@ -209,7 +237,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Status</Label>
             {isEditing ? (
               <Select
-                value={editData?.status || "active"}
+                value={editData.status || "active"}
                 onValueChange={(value) => setEditData({ ...editData, status: value })}
               >
                 <SelectTrigger className="mt-1">
@@ -217,10 +245,10 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="inquiry">Inquiry</SelectItem>
-                  <SelectItem value="proposal">proposal</SelectItem>
+                  <SelectItem value="proposal">Proposal</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="review">Review</SelectItem>
-                  <SelectItem value="completed">completed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
@@ -270,7 +298,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 <SelectContent>
                   <SelectItem value="discovery">Discovery</SelectItem>
                   <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="deevlopment">Development</SelectItem>
+                  <SelectItem value="development">Development</SelectItem>
                   <SelectItem value="review">Review</SelectItem>
                   <SelectItem value="delivery">Delivery</SelectItem>
                   <SelectItem value="payment">Payment</SelectItem>
@@ -341,8 +369,8 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 type="date"
                 value={editData.deadline ? new Date(editData.deadline).toISOString().split("T")[0] : ""}
                 onChange={(e) => {
-                  const date = new Date(e.target.value);
-                  setEditData({ ...editData, deadline: date.toISOString() });
+                  const date = new Date(e.target.value)
+                  setEditData({ ...editData, deadline: date.toISOString() })
                   console.log(date)
                 }}
                 className="mt-1"
@@ -399,7 +427,6 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
 
       <div>
         <AddExpenseDialog data={data} />
-        <AddPaymentDialog />
         <CreateInvoiceDialog data={data} />
       </div>
 
@@ -504,14 +531,14 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 type="date"
                 value={editData.due_date ? new Date(editData.due_date).toISOString().split("T")[0] : ""}
                 onChange={(e) => {
-                  const date = new Date(e.target.value);
-                  setEditData({ ...editData, due_date: date.toISOString() }); // send full datetime
+                  const date = new Date(e.target.value)
+                  setEditData({ ...editData, due_date: date.toISOString() }) // send full datetime
                 }}
                 className="mt-1"
               />
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-3 w-3 text-gray-400" />
                 {data.due_date ? new Date(data.due_date).toLocaleDateString() : "Not set"}
               </div>
             )}
@@ -540,9 +567,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <User className="h-3 w-3" />
-                {data.assigned_to_associate 
-                ? associates.find((a:any) => a.id === data.assigned_to_associate)?.name || "Unknown"
-                : "Unassigned"}
+                {data.assigned_to_associate
+                  ? associates.find((a: any) => a.id === data.assigned_to_associate)?.name || "Unknown"
+                  : "Unassigned"}
               </div>
             )}
           </div>
@@ -606,57 +633,57 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium">Name</Label>
-              <p className="text-sm text-gray-600 mt-1">{data.name}</p>
+            <p className="text-sm text-gray-600 mt-1">{data.name}</p>
           </div>
           <div>
             <Label className="text-sm font-medium">Status</Label>
-              <Badge variant="outline" className="mt-1 caret-emerald-400">
-                {data.status || "active"}
-              </Badge>
+            <Badge variant="outline" className="mt-1 caret-emerald-400">
+              {data.status || "active"}
+            </Badge>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium">Email</Label>
-              <div className="flex items-center gap-1 text-sm mt-1">
-                <Mail className="h-3 w-3" />
-                {data.email}
-              </div>
+            <div className="flex items-center gap-1 text-sm mt-1">
+              <Mail className="h-3 w-3" />
+              {data.email}
+            </div>
           </div>
           <div>
             <Label className="text-sm font-medium">Phone</Label>
-              <div className="flex items-center gap-1 text-sm mt-1">
-                <Phone className="h-3 w-3" />
-                {data.phone}
-              </div>
+            <div className="flex items-center gap-1 text-sm mt-1">
+              <Phone className="h-3 w-3" />
+              {data.phone}
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-              <div className="flex items-center gap-1 mt-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{data.rating || 4.5}</span>
-              </div>          
+            <div className="flex items-center gap-1 mt-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{data.rating || 4.5}</span>
+            </div>
           </div>
-          <div>            
-              <div className="flex items-center gap-1 mt-1">
-                <Percent className="h-3 w-3" />
-                <span className="font-medium">{data.rate || 70}</span>
-              </div>            
+          <div>
+            <div className="flex items-center gap-1 mt-1">
+              <Percent className="h-3 w-3" />
+              <span className="font-medium">{data.rate || 70}</span>
+            </div>
           </div>
         </div>
 
         <div>
-            <div className="flex flex-wrap gap-1 mt-1">
-              <Label className="text-sm font-medium">Skills</Label>
-              {(data.skills || []).map((skill: string, index: number) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            <Label className="text-sm font-medium">Skills</Label>
+            {(data.skills || []).map((skill: string, index: number) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {skill}
+              </Badge>
+            ))}
+          </div>
         </div>
       </div>
       <div className="space-y-3">
@@ -672,23 +699,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           </div>
         ) : tasks.filter((task: any) => task.assigned_to_associate === data.id).length > 0 ? (
           <div className="space-y-2">
-            {
-            tasks.filter((task: any) => task.assigned_to_associate === data.id)
-            .map((task: any) => (
-              <div
-                key={task.id}
-                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm group-hover:text-blue-600">{task.title}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">${task.task_value}</Badge>
-                    <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+            {tasks
+              .filter((task: any) => task.assigned_to_associate === data.id)
+              .map((task: any) => (
+                <div
+                  key={task.id}
+                  className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm group-hover:text-blue-600">{task.title}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">${task.task_value}</Badge>
+                      <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                    </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">{task.description}</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{task.description}</p>
-              </div>
-            ))}
+              ))}
           </div>
         ) : (
           <p className="text-sm text-gray-500">No tasks yet</p>
@@ -696,6 +723,147 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       </div>
     </div>
   )
+
+  const renderInvoiceDetails = () => {
+    const overdue = isOverdue(data.due_date, data.status)
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${overdue ? "bg-red-100" : "bg-emerald-100"}`}>
+            <FileText className={`h-5 w-5 ${overdue ? "text-red-600" : "text-emerald-600"}`} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{data.invoice_number}</h3>
+            <p className="text-sm text-gray-500">Invoice</p>
+          </div>
+        </div>
+
+        {overdue && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <span className="text-sm text-red-800 font-medium">This invoice is overdue</span>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Status</Label>
+              <Badge variant="outline" className={`mt-1 ${getStatusColor(data.status)}`}>
+                {data.status}
+              </Badge>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Amount</Label>
+              <div className="flex items-center gap-1 text-lg font-semibold mt-1">
+                <DollarSign className="h-4 w-4" />
+                {formatCurrency(data.amount, data.currency)}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Issue Date</Label>
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Calendar className="h-3 w-3 text-gray-400" />
+                {new Date(data.issue_date).toLocaleDateString()}
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Due Date</Label>
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <Clock className={`h-3 w-3 ${overdue ? "text-red-600" : "text-gray-400"}`} />
+                <span className={overdue ? "text-red-600 font-medium" : ""}>
+                  {new Date(data.due_date).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {data.paid_date && (
+            <div>
+              <Label className="text-sm font-medium">Paid Date</Label>
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <CheckCircle2 className="h-3 w-3 text-green-600" />
+                <span className="text-green-600">{new Date(data.paid_date).toLocaleDateString()}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Payment Method</Label>
+              <div className="flex items-center gap-1 text-sm mt-1">
+                <CreditCard className="h-3 w-3 text-gray-400" />
+                {data.payment_method ? (
+                  <span className="capitalize">{data.payment_method}</span>
+                ) : (
+                  <span className="text-gray-400">Not specified</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Transaction Ref</Label>
+              <p className="text-sm text-gray-600 mt-1 font-mono">{data.transaction_ref || "N/A"}</p>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Project ID</Label>
+            <p className="text-sm text-gray-600 mt-1 font-mono break-all">{data.project_id}</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-900">Description</h4>
+          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+            {data.description || "No description provided"}
+          </p>
+        </div>
+
+        {data.notes && (
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Notes</h4>
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{data.notes}</p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-900">Timeline</h4>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Created</p>
+                <p className="text-xs text-gray-500">{new Date(data.created_at).toLocaleString()}</p>
+              </div>
+            </div>
+            {data.updated_at !== data.created_at && (
+              <div className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-yellow-600 rounded-full mt-1.5"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Last Updated</p>
+                  <p className="text-xs text-gray-500">{new Date(data.updated_at).toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+            {data.paid_date && (
+              <div className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full mt-1.5"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Paid</p>
+                  <p className="text-xs text-gray-500">{new Date(data.paid_date).toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <AddPaymentDialog data={data}/>
+      </div>
+    )
+  }
 
   const renderNotes = () => (
     <div className="space-y-3">
@@ -736,8 +904,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         {type === "project" && renderEnhancedProjectDetails()}
         {type === "task" && renderEnhancedTaskDetails()}
         {type === "associate" && renderAssociateDetails()}
+        {type === "invoice" && renderInvoiceDetails()}
 
-        {renderNotes()}
+        {type !== "invoice" && renderNotes()}
       </div>
 
       {/* Actions */}
