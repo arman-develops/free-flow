@@ -34,6 +34,9 @@ import { useUpdateTask } from "@/hooks/use-tasks"
 import { useUpdateAssociate } from "@/hooks/use-associates"
 import { toast } from "sonner"
 import { useAssociates } from "@/hooks/use-associates"
+import { CreateInvoiceDialog } from "./create-invoice-dialog"
+import { AddExpenseDialog } from "./add-expense-dialog"
+import { AddPaymentDialog } from "./add-payment-dialog"
 
 interface DetailPanelProps {
   isOpen: boolean
@@ -206,7 +209,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Status</Label>
             {isEditing ? (
               <Select
-                value={editData.status || "active"}
+                value={editData?.status || "active"}
                 onValueChange={(value) => setEditData({ ...editData, status: value })}
               >
                 <SelectTrigger className="mt-1">
@@ -392,6 +395,12 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             {data.description || "No description provided"}
           </p>
         )}
+      </div>
+
+      <div>
+        <AddExpenseDialog data={data} />
+        <AddPaymentDialog />
+        <CreateInvoiceDialog />
       </div>
 
       <div className="pt-2">

@@ -2,9 +2,6 @@ import { FinanceStats } from "@/components/dashboard/finance-stats"
 import { PaymentsTable } from "@/components/dashboard/payments-table"
 import { ExpensesTable } from "@/components/dashboard/expenses-table"
 import { DollarSign } from "lucide-react"
-import { CreateInvoiceDialog } from "@/components/dashboard/create-invoice-dialog"
-import { AddPaymentDialog } from "@/components/dashboard/add-payment-dialog"
-import { AddExpenseDialog } from "@/components/dashboard/add-expense-dialog"
 
 export default function FinancesPage() {
   return (
@@ -19,11 +16,6 @@ export default function FinancesPage() {
                 Finances
               </h1>
               <p className="text-muted-foreground">Track payments, expenses, and financial performance.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <AddExpenseDialog />
-              <AddPaymentDialog />
-              <CreateInvoiceDialog />
             </div>
           </div>
 

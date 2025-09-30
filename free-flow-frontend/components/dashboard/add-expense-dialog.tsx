@@ -21,22 +21,37 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Receipt, Plus, Upload } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { useMutation } from "@tanstack/react-query"
+import { expensesApi } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 
 interface AddExpenseDialogProps {
   trigger?: React.ReactNode
+  data: any
 }
 
-export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ trigger, data }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false)
   const [expenseDate, setExpenseDate] = useState<Date>()
   const [formData, setFormData] = useState({
-    projectId: "",
+    project_id: data.id as string,
     amount: "",
     currency: "USD",
     description: "",
     category: "",
     vendor: "",
     receiptURL: "",
+  })
+
+  const createExpenseMutation = useMutation({
+    mutationFn: expensesApi.create,
+    onSuccess: () => {
+      toast.success("Expenses added successfully!")
+      queryClient.invalidateQueries({ queryKey: ["clients"] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to create client")
+    },
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,20 +63,19 @@ export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
     }
 
     try {
-      // Here you would typically make an API call to create the expense
       const expenseData = {
         ...formData,
         amount: Number.parseFloat(formData.amount),
         date: expenseDate.toISOString(),
       }
 
-      console.log("Creating expense:", expenseData)
+      createExpenseMutation.mutate(expenseData)
       toast.success("Expense added successfully!")
       setOpen(false)
 
       // Reset form
       setFormData({
-        projectId: "",
+        project_id: "",
         amount: "",
         currency: "USD",
         description: "",
@@ -80,7 +94,7 @@ export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+          <Button variant="outline" className="w-full bg-transparent mb-3">
             <Plus className="h-4 w-4" />
             Add Expense
           </Button>
@@ -99,14 +113,8 @@ export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="projectId">Project ID *</Label>
-              <Input
-                id="projectId"
-                value={formData.projectId}
-                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                placeholder="Enter project ID"
-                required
-              />
+              <Label htmlFor="projectId">Project *</Label>
+              <div>{data.name}</div>
             </div>
             <div>
               <Label htmlFor="category">Category *</Label>
@@ -125,6 +133,7 @@ export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
                   <SelectItem value="travel">Travel</SelectItem>
                   <SelectItem value="equipment">Equipment</SelectItem>
                   <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="outsourcing">Outsourcing</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -177,7 +186,7 @@ export function AddExpenseDialog({ trigger }: AddExpenseDialogProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={expenseDate} onSelect={setExpenseDate} initialFocus />
+                <Calendar mode="single" selected={expenseDate} onSelect={setExpenseDate} />
               </PopoverContent>
             </Popover>
           </div>

@@ -82,7 +82,7 @@ export function CreateInvoiceDialog({ trigger }: CreateInvoiceDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="flex items-center gap-2">
+          <Button className="w-full mt-1">
             <Plus className="h-4 w-4" />
             Create Invoice
           </Button>

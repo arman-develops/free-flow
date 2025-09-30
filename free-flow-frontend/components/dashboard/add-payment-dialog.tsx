@@ -92,7 +92,7 @@ export function AddPaymentDialog({ trigger }: AddPaymentDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="flex items-center gap-2">
+          <Button className="w-full mb-2">
             <Plus className="h-4 w-4" />
             Record Payment
           </Button>

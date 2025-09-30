@@ -61,6 +61,7 @@ func CreateInvoice(c *gin.Context) {
 		PaymentMethod:  input.PaymentMethod,
 		TransactionRef: input.TransactionRef,
 		IssueDate:      time.Now(),
+		UserID:         uuid.MustParse(userID),
 	}
 
 	if err := config.DB.Create(&invoice).Error; err != nil {

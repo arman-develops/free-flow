@@ -44,6 +44,7 @@ func CreateExpense(c *gin.Context) {
 		Category:    utils.StringOrDefault(input.Category, "other"),
 		Date:        utils.TimeOrNow(input.Date),
 		Vendor:      utils.StringOrDefault(input.Vendor, ""),
+		UserID:      uuid.MustParse(userID),
 	}
 
 	if err := config.DB.Create(&expense).Error; err != nil {

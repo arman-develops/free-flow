@@ -45,6 +45,7 @@ func CreatePayment(c *gin.Context) {
 		PaidDate:       utils.TimeOrNow(input.PaidDate),
 		Status:         utils.StringOrDefault(input.Status, "pending"),
 		Notes:          input.Notes,
+		UserID:         uuid.MustParse(userID),
 	}
 
 	if err := config.DB.Create(&payment).Error; err != nil {

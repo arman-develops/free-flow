@@ -50,6 +50,16 @@ interface CreateAssociateRequest {
   skills: string[]
 }
 
+interface CreateExpenseRequest {
+  project_id: string
+  amount: number
+  currency: string
+  description: string
+  category: string
+  date: string
+  vendor: string
+}
+
 interface ApiResponse {
   success: boolean
   data: {
@@ -169,4 +179,11 @@ export const associatesApi = {
     const response = await apiClient.patch(`/task/${associateID}`, data)
     return response.data
   },
+}
+
+export const expensesApi = {
+  create: async (data: CreateExpenseRequest) => {
+    const response = await apiClient.post("/expense/", data)
+    return response.data
+  }
 }
