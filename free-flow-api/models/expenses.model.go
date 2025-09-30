@@ -13,6 +13,8 @@ type Expense struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
+	UserID uuid.UUID `json:"user_id"`
+
 	ProjectID   uuid.UUID `json:"project_id" gorm:"not null"`
 	Amount      float64   `json:"amount" gorm:"not null"`
 	Currency    string    `json:"currency" gorm:"default:'KES'"`
@@ -24,6 +26,7 @@ type Expense struct {
 
 	// Relationships
 	Project Project `json:"-" gorm:"foreignKey:ProjectID"`
+	User    User    `json:"-" gorm:"foreignKey:UserID"`
 }
 
 func (u *Expense) BeforeCreate(tx *gorm.DB) (err error) {

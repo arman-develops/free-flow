@@ -13,6 +13,8 @@ type Payment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
+	UserID uuid.UUID `json:"user_id"`
+
 	InvoiceID uuid.UUID `json:"invoice_id" gorm:"not null"`
 	Amount    float64   `json:"amount" gorm:"not null"`
 	Currency  string    `json:"currency" gorm:"default:'KES'"`
@@ -26,6 +28,7 @@ type Payment struct {
 	Notes *string `json:"notes"`
 
 	Invoice Invoice `json:"-" gorm:"foreignKey:InvoiceID"`
+	User    User    `json:"-" gorm:"foreignKey:UserID"`
 }
 
 func (u *Payment) BeforeCreate(tx *gorm.DB) (err error) {

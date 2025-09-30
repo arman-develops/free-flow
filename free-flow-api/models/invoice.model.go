@@ -14,6 +14,8 @@ type Invoice struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
+	UserID uuid.UUID `json:"user_id"`
+
 	ProjectID     uuid.UUID `json:"project_id" gorm:"not null"`
 	InvoiceNumber string    `gorm:"uniqueIndex"`
 	Amount        float64   `json:"amount" gorm:"not null"`
@@ -35,6 +37,7 @@ type Invoice struct {
 
 	// Relationships
 	Project Project `json:"-" gorm:"foreignKey:ProjectID"`
+	User    User    `json:"-" gorm:"foreignKey:UserID"`
 }
 
 func (u *Invoice) BeforeCreate(tx *gorm.DB) (err error) {
