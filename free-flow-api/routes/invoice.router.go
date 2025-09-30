@@ -13,8 +13,9 @@ func RegisterInvoiceRouter(rg *gin.RouterGroup) {
 	{
 		invoice.POST("/", controllers.CreateInvoice)
 		invoice.GET("/", controllers.GetInvoices)
-		invoice.GET("/:id", controllers.GetInvoices)
+		invoice.GET("/:id", controllers.GetInvoiceByID)
 		invoice.PUT("/:id", controllers.UpdateInvoice)
 		invoice.DELETE("/:id", controllers.DeleteInvoice)
+		invoice.GET("/u", controllers.GetInvoiceByUserID)
 	}
 }

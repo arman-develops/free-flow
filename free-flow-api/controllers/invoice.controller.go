@@ -94,6 +94,25 @@ func GetInvoices(c *gin.Context) {
 }
 
 // GetInvoiceByID godoc
+func GetInvoiceByUserID(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		return
+	}
+
+	user_id := uuid.MustParse(userID)
+
+	var invoices []models.Invoice
+	if err := config.DB.Find(&invoices, "user_id = ?", user_id).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "invoices not found")
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, invoices)
+}
+
+// GetInvoiceByID godoc
 func GetInvoiceByID(c *gin.Context) {
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {

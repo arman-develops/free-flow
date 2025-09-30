@@ -17,7 +17,7 @@ type Invoice struct {
 	UserID uuid.UUID `json:"user_id"`
 
 	ProjectID     uuid.UUID `json:"project_id" gorm:"not null"`
-	InvoiceNumber string    `gorm:"uniqueIndex"`
+	InvoiceNumber string    `json:"invoice_number" gorm:"uniqueIndex"`
 	Amount        float64   `json:"amount" gorm:"not null"`
 	Currency      string    `json:"currency" gorm:"default:'KES'"`
 
