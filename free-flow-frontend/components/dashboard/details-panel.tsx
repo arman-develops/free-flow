@@ -32,7 +32,7 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react"
-import { projectsApi, tasksApi } from "@/lib/api"
+import { paymentApi, projectsApi, tasksApi } from "@/lib/api"
 import { useUpdateProject } from "@/hooks/use-projects"
 import { useUpdateTask } from "@/hooks/use-tasks"
 import { useUpdateAssociate } from "@/hooks/use-associates"
@@ -68,12 +68,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     enabled: type === "associate" && !!data?.id,
   })
 
+  const {data: paymentsResponse, isLoading: paymentsLoading} = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentApi.getPayments,
+    enabled: type === "invoice" && !!data?.id,
+  })
+
   const updateProject = useUpdateProject()
   const updateTask = useUpdateTask()
   const updateAssociate = useUpdateAssociate()
   const { data: associatesResponse } = useAssociates()
   const associates = associatesResponse?.success ? associatesResponse.data : []
   const tasks = associateTasks?.success ? associateTasks.data : []
+
+  const allPayments = paymentsResponse?.success ? paymentsResponse?.data : []
+  const paymentsByInvoice = allPayments.filter((payment:any) => 
+    payment.invoice_id === data?.id
+  )
 
   useEffect(() => {
     setEditData(data)
@@ -860,6 +871,67 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             )}
           </div>
         </div>
+
+        {paymentsLoading ? (
+          <div className="space-y-2">
+            <h4 className="font-medium text-gray-900">Payments</h4>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-3 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : paymentsByInvoice?.length ? (
+          <div className="space-y-2">
+            {paymentsByInvoice.map((payment: any) => (
+              <div
+                key={payment.id}
+                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
+              >
+                <div className="flex items-center justify-between">
+                  {/* Payment Method */}
+                  <span className="font-medium text-sm group-hover:text-blue-600 capitalize">
+                    {payment.method}
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {/* Amount + Currency */}
+                    <Badge variant="outline">
+                      {payment.currency} {payment.amount.toLocaleString()}
+                    </Badge>
+
+                    {/* Status */}
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        payment.status === "confirmed"
+                          ? "bg-green-100 text-green-700"
+                          : payment.status === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {payment.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Date + Transaction Ref */}
+                <p className="text-xs text-gray-500 mt-1">
+                  Paid on {new Date(payment.paid_date).toLocaleString()} <br />
+                  Ref: {payment.transaction_ref}
+                </p>
+
+                {/* Notes (if any) */}
+                {payment.notes && (
+                  <p className="text-xs text-gray-400 mt-1 italic">{payment.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No payments yet</p>
+        )}
         <AddPaymentDialog data={data}/>
       </div>
     )

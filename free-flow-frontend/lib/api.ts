@@ -225,4 +225,9 @@ export const paymentApi = {
     const response = await apiClient.post("/payment/", data)
     return response.data
   },
+
+  getPayments: async() => {
+    const response = await apiClient.get(`/payment/u`)
+    return response.data
+  }
 }

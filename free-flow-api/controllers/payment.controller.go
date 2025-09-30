@@ -78,6 +78,23 @@ func GetPayments(c *gin.Context) {
 }
 
 // GetPaymentByID godoc
+func GetPaymentByUserID(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		return
+	}
+
+	var payments []models.Payment
+	if err := config.DB.First(&payments, "user_id = ?", uuid.MustParse(userID)).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "payments not found")
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, payments)
+}
+
+// GetPaymentByID godoc
 func GetPaymentByID(c *gin.Context) {
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {

@@ -13,6 +13,7 @@ func RegisterPaymentRouter(rg *gin.RouterGroup) {
 	{
 		payment.POST("/", controllers.CreatePayment)
 		payment.GET("/", controllers.GetPayments)
+		payment.GET("/u", controllers.GetPaymentByUserID)
 		payment.GET("/:id", controllers.GetPaymentByID)
 		payment.PUT("/:id", controllers.UpdatePayment)
 		payment.DELETE("/:id", controllers.DeletePayment)

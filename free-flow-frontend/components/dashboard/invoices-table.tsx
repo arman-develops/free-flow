@@ -137,8 +137,6 @@ export function InvoicesTable() {
         </>
         )
     }
-
-    console.log(invoices)
     
     const filteredInvoices = invoices?.filter((invoice: Invoice) =>
         invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
