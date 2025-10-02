@@ -13,6 +13,7 @@ import (
 
 type ProjectInput struct {
 	Name           string    `json:"name" binding:"required"`
+	Category       string    `json:"category" binding:"required"`
 	Description    string    `json:"description"`
 	EstimatedValue float64   `json:"estimated_value"`
 	Notes          string    `json:"notes"`
@@ -21,6 +22,7 @@ type ProjectInput struct {
 
 type ProjectUpdateInput struct {
 	Name           *string               `json:"name,omitempty"`
+	Category       *string               `json:"category"`
 	Description    *string               `json:"description,omitempty"`
 	EstimatedValue *float64              `json:"estimated_value,omitempty"`
 	Notes          *string               `json:"notes,omitempty"`
@@ -57,6 +59,7 @@ func NewProject(c *gin.Context) {
 	//create new project
 	project := models.Project{
 		Name:           input.Name,
+		Category:       input.Category,
 		Description:    input.Description,
 		EstimatedValue: input.EstimatedValue,
 		Notes:          input.Notes,
@@ -107,6 +110,25 @@ func GetProjectByEntityID(c *gin.Context) {
 
 	var projects []models.Project
 	if err := config.DB.Find(&projects, "entity_id = ?", entityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Project Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, projects)
+}
+
+func GetProjectsByUserID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	var projects []models.Project
+	if err := config.DB.Find(&projects, "user_id = ?", uuid.MustParse(userID)).Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusNotFound, "Project Not Found")
 		c.Abort()
 		return
@@ -181,6 +203,9 @@ func UpdateProject(c *gin.Context) {
 	// Handle basic field updates
 	if updates.Name != nil {
 		updateMap["name"] = *updates.Name
+	}
+	if updates.Category != nil {
+		updateMap["category"] = *updates.Category
 	}
 	if updates.Description != nil {
 		updateMap["description"] = *updates.Description

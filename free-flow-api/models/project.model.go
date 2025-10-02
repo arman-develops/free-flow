@@ -44,6 +44,7 @@ type Project struct {
 	Name     string    `json:"name" gorm:"not null"`
 
 	// Project details
+	Category     string        `json:"category" gorm:"type:varchar(50)"`
 	Description  string        `json:"description"`
 	Status       ProjectStatus `json:"status" gorm:"default:'inquiry'"`
 	CurrentPhase ProjectPhase  `json:"current_phase" gorm:"default:'discovery'"`

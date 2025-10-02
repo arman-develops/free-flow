@@ -41,6 +41,7 @@ import { useAssociates } from "@/hooks/use-associates"
 import { AddExpenseDialog } from "./add-expense-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { AddPaymentDialog } from "./add-payment-dialog"
+import { queryClient } from "@/lib/query-client"
 
 interface DetailPanelProps {
   isOpen: boolean
@@ -51,6 +52,12 @@ interface DetailPanelProps {
 }
 
 export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanelProps) {
+
+  useEffect(() => {
+    setEditData(data)
+    setNotes(data?.notes || "")
+  }, [data])
+
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState(data)
@@ -60,6 +67,12 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     queryKey: [`projects`, data?.id],
     queryFn: () => projectsApi.getProjectByClientID(data.id),
     enabled: type === "client" && !!data?.id,
+  })
+
+  const { data: projectResponse, isLoading: projectLoading} = useQuery({
+    queryKey: ["project", data?.id],
+    queryFn: () => projectsApi.getProjectByID(data.id),
+    enabled: type === "project" && !!data?.id,
   })
 
   const { data: associateTasks, isLoading: tasksLoading } = useQuery({
@@ -85,11 +98,8 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const paymentsByInvoice = allPayments.filter((payment:any) => 
     payment.invoice_id === data?.id
   )
-
-  useEffect(() => {
-    setEditData(data)
-    setNotes(data?.notes || "")
-  }, [data])
+  const project = projectResponse?.success ? projectResponse.data : {}
+  const projectDetails = project ?? data
 
   if (!isOpen || !type || !data) return null
 
@@ -98,6 +108,8 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       if (type === "project") {
         await updateProject.mutateAsync({ id: data.id, data: editData })
         toast.success("Project updated successfully")
+        queryClient.invalidateQueries({queryKey: ["projects"]}) // for sidebar list + aggregations
+        queryClient.invalidateQueries({queryKey: ["project", data.id]}) // for sidepanel
       } else if (type === "task") {
         await updateTask.mutateAsync({ id: data.id, data: editData })
         toast.success("Task updated successfully")
@@ -237,7 +249,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           <FolderOpen className="h-5 w-5 text-green-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{data.name}</h3>
+          <h3 className="font-semibold text-gray-900">{projectDetails?.name}</h3>
           <p className="text-sm text-gray-500">Project for {client?.companyName}</p>
         </div>
       </div>
@@ -248,7 +260,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Status</Label>
             {isEditing ? (
               <Select
-                value={editData.status || "active"}
+                value={editData?.status || "active"}
                 onValueChange={(value) => setEditData({ ...editData, status: value })}
               >
                 <SelectTrigger className="mt-1">
@@ -266,7 +278,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
               </Select>
             ) : (
               <Badge variant="outline" className="mt-1">
-                {data.status || "proposal"}
+                {projectDetails?.status || "proposal"}
               </Badge>
             )}
           </div>
@@ -288,8 +300,8 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 </SelectContent>
               </Select>
             ) : (
-              <Badge variant="outline" className={`mt-1 ${getPriorityColor(data.priority || "medium")}`}>
-                {data.priority || "medium"}
+              <Badge variant="outline" className={`mt-1 ${getPriorityColor(projectDetails?.priority || "medium")}`}>
+                {projectDetails?.priority || "medium"}
               </Badge>
             )}
           </div>
@@ -317,7 +329,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
               </Select>
             ) : (
               <Badge variant="outline" className={`mt-1`}>
-                {data.current_phase || "discovery"}
+                {projectDetails?.current_phase || "discovery"}
               </Badge>
             )}
           </div>
@@ -328,10 +340,10 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-green-600 h-2 rounded-full"
-                    style={{ width: `${data.progress_percent || 0}%` }}
+                    style={{ width: `${projectDetails?.progress_percent || 0}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-medium">{data.progress_percent || 0}%</span>
+                <span className="text-sm font-medium">{projectDetails?.progress_percent || 0}%</span>
               </div>
             </div>
           </div>
@@ -350,7 +362,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <DollarSign className="h-3 w-3" />
-                {data.estimated_value ? `${data.currency || "$"}${data.estimated_value}` : "Not set"}
+                {projectDetails?.estimated_value ? `${projectDetails?.currency || "$"}${projectDetails?.estimated_value}` : "Not set"}
               </div>
             )}
           </div>
@@ -366,7 +378,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <DollarSign className="h-3 w-3" />
-                {data.actual_value ? `${data.currency || "$"}${data.actual_value}` : "Not set"}
+                {projectDetails?.actual_value ? `${projectDetails?.currency || "$"}${projectDetails?.actual_value}` : "Not set"}
               </div>
             )}
           </div>
@@ -389,7 +401,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <Calendar className="h-3 w-3" />
-                {data.deadline ? new Date(data.deadline).toLocaleDateString() : "Not set"}
+                {projectDetails?.deadline ? new Date(projectDetails?.deadline).toLocaleDateString() : "Not set"}
               </div>
             )}
           </div>
@@ -405,17 +417,48 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 className="mt-1"
               />
             ) : (
-              <p className="text-sm text-gray-600 mt-1">{data.your_cut_percent || 0}%</p>
+              <p className="text-sm text-gray-600 mt-1">{projectDetails?.your_cut_percent || 0}%</p>
             )}
           </div>
+
+          <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-medium text-gray-900">
+                Category *
+              </Label>
+              {
+                isEditing ? ( 
+                  <Select
+                    value={editData.category}
+                    onValueChange={(value) => setEditData({...editData, category: value})}
+                    required
+                  >
+                    <SelectTrigger id="category" className="w-full border-gray-300 focus:border-gray-500 focus:ring-gray-500">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="web">Web Development</SelectItem>
+                      <SelectItem value="mobile">Mobile Apps</SelectItem>
+                      <SelectItem value="design">UI/UX Design</SelectItem>
+                      <SelectItem value="consulting">Consulting</SelectItem>
+                      <SelectItem value="writing">Writing</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="outline" className={`mt-1`}>
+                    {projectDetails?.category || "Other"}
+                  </Badge>
+                )
+              }
+            </div>
         </div>
 
-        {data.completed_at && (
+        {projectDetails?.completed_at && (
           <div>
             <Label className="text-sm font-medium">Completed At</Label>
             <div className="flex items-center gap-1 text-sm mt-1">
               <CheckCircle2 className="h-3 w-3 text-green-600" />
-              {new Date(data.completed_at).toLocaleDateString()}
+              {new Date(projectDetails.completed_at).toLocaleDateString()}
             </div>
           </div>
         )}
@@ -431,14 +474,14 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           />
         ) : (
           <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-            {data.description || "No description provided"}
+            {projectDetails?.description || "No description provided"}
           </p>
         )}
       </div>
 
       <div>
-        <AddExpenseDialog data={data} />
-        <CreateInvoiceDialog data={data} />
+        <AddExpenseDialog data={projectDetails} />
+        <CreateInvoiceDialog data={projectDetails} />
       </div>
 
       <div className="pt-2">

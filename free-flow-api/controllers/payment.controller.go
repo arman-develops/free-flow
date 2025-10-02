@@ -86,7 +86,7 @@ func GetPaymentByUserID(c *gin.Context) {
 	}
 
 	var payments []models.Payment
-	if err := config.DB.First(&payments, "user_id = ?", uuid.MustParse(userID)).Error; err != nil {
+	if err := config.DB.Find(&payments, "user_id = ?", uuid.MustParse(userID)).Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusNotFound, "payments not found")
 		return
 	}

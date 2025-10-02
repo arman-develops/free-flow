@@ -89,17 +89,17 @@ export function AssociatesTable() {
   }
 
     if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Loading associates...</span>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+      return (
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading associates...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
 
   if (error) {
     return (

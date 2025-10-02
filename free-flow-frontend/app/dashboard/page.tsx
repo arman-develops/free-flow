@@ -1,3 +1,5 @@
+"use client"
+
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -14,28 +16,22 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your projects.
+            Welcome back!
           </p>
         </div>
       </div>
+      
+      {/* Quick Actions */}
+      <QuickActions />
 
       {/* Stats Grid */}
       <DashboardStats />
 
-      {/* Quick Actions */}
-      <QuickActions />
-
       {/* Main Content Grid */}
       {/* Analytics Overview */}
       <AnalyticsOverview />
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <ProjectProgress />
-        </div>
-        <div className="space-y-6">
-          <PriorityTasks />
-        </div>
-      </div>
+
+      <ProjectProgress />
     </div>
   );
 }

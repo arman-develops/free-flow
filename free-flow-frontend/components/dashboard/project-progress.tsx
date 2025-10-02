@@ -5,49 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, ArrowRight, Calendar, DollarSign } from "lucide-react";
-
-const ongoingProjects = [
-  {
-    id: 1,
-    name: "TechCorp Website Redesign",
-    client: "TechCorp Inc.",
-    progress: 75,
-    status: "on-track",
-    dueDate: "Dec 20, 2024",
-    budget: "$8,500",
-    spent: "$6,375",
-  },
-  {
-    id: 2,
-    name: "StartupXYZ Mobile App",
-    client: "StartupXYZ",
-    progress: 45,
-    status: "on-track",
-    dueDate: "Jan 15, 2025",
-    budget: "$15,000",
-    spent: "$6,750",
-  },
-  {
-    id: 3,
-    name: "E-commerce Platform",
-    client: "RetailCorp",
-    progress: 30,
-    status: "at-risk",
-    dueDate: "Dec 30, 2024",
-    budget: "$12,000",
-    spent: "$4,200",
-  },
-  {
-    id: 4,
-    name: "Portfolio Website",
-    client: "Creative Agency",
-    progress: 90,
-    status: "ahead",
-    dueDate: "Dec 18, 2024",
-    budget: "$3,500",
-    spent: "$3,150",
-  },
-];
+import { useState } from "react";
+import { DetailPanel } from "./details-panel";
+import { useQuery } from "@tanstack/react-query";
+import { projectsApi } from "@/lib/api";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -64,13 +25,28 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const getProgressColor = (progress: number, status: string) => {
-  if (status === "at-risk" || status === "delayed") return "bg-destructive";
-  if (status === "ahead") return "bg-secondary";
-  return "bg-primary";
-};
-
 export function ProjectProgress() {
+  const [isProjectDetailOpen, setIsProjectDetailOpen] = useState(false)
+  const [selectedProject, setSelectedProject] = useState(null)
+  
+  const handleProjectClick = (project:any) => {
+    setIsProjectDetailOpen(true)
+    setSelectedProject(project)
+  }
+
+  const {
+    data: activeProjectsRequest,
+    isLoading,
+    error
+  } = useQuery ({
+    queryKey: ["projects"],
+    queryFn: projectsApi.getProjectByUser
+  })
+
+  const allProjects = activeProjectsRequest?.success ? activeProjectsRequest.data : []
+  
+  const activeProjects = allProjects.filter((project:any) => project.status === "active")
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -84,15 +60,15 @@ export function ProjectProgress() {
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        {ongoingProjects.map((project) => (
-          <div key={project.id} className="space-y-3">
+        {activeProjects.map((project:any) => (
+          <div key={project.id} className="space-y-3 border-b-1 cursor-pointer transition-shadow hover:bg-gray-50" onClick={() => handleProjectClick(project)}>
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-medium text-card-foreground">
                   {project.name}
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  {project.client}
+                  {project.description}
                 </p>
               </div>
               <Badge
@@ -111,19 +87,25 @@ export function ProjectProgress() {
               <Progress value={project.progress} className="h-2" />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {project.dueDate}
+                {project.deadline ? `Deadline: ${project.deadline}` : "Deadline: Not set"}
               </div>
               <div className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                {project.spent} / {project.budget}
+                {project.actual_value}
               </div>
             </div>
           </div>
         ))}
       </CardContent>
+      <DetailPanel
+          isOpen={isProjectDetailOpen}
+          onClose={() => setIsProjectDetailOpen(false)}
+          type="project"
+          data={selectedProject}
+        />
     </Card>
   );
 }

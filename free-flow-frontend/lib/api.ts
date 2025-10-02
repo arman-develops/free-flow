@@ -139,6 +139,11 @@ export const projectsApi = {
     return response.data
   },
 
+  getProjectByUser: async () => {
+    const response = await apiClient.get("/project/u")
+    return response.data
+  },
+
   updateProject: async (projectID: string, data: any) => {
     const response = await apiClient.put(`/project/${projectID}`, data)
     return response.data
@@ -228,6 +233,21 @@ export const paymentApi = {
 
   getPayments: async() => {
     const response = await apiClient.get(`/payment/u`)
+    return response.data
+  }
+}
+
+export const statsApi = {
+  getDashboardStats: async () => {
+    const response = await apiClient.get("/stats/dashboard")
+    return response.data
+  },
+  getRevenueStats: async () => {
+    const response = await apiClient.get("/stats/dashboard/revenue")
+    return response.data
+  },
+  getProjectDataStats: async () => {
+    const response = await apiClient.get("/stats/dashboard/projects")
     return response.data
   }
 }

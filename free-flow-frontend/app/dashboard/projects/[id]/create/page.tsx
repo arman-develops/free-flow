@@ -21,6 +21,7 @@ export default function CreateProjectPage() {
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     name: "",
+    category: "",
     description: "",
     estimated_value: "",
     notes: "",
@@ -90,6 +91,29 @@ export default function CreateProjectPage() {
                   required
                   className="h-10 border-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-sm font-medium text-gray-900">
+                  Category *
+                </Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => handleInputChange("category", value)}
+                  required
+                >
+                  <SelectTrigger id="category" className="w-full border-gray-300 focus:border-gray-500 focus:ring-gray-500">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="web">Web Development</SelectItem>
+                    <SelectItem value="mobile">Mobile Apps</SelectItem>
+                    <SelectItem value="design">UI/UX Design</SelectItem>
+                    <SelectItem value="consulting">Consulting</SelectItem>
+                    <SelectItem value="writing">Writing</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

@@ -36,7 +36,7 @@ export const useUpdateProject = () => {
     mutationFn: ({ id, data }: { id: string; data: any }) => projectsApi.updateProject(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] })
-      queryClient.invalidateQueries({ queryKey: ["project", variables.id] })
+      queryClient.invalidateQueries({ queryKey: ["projects", "project_stats", variables.id] })
     },
   })
 }

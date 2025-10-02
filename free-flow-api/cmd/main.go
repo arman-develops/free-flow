@@ -43,6 +43,7 @@ func main() {
 		routes.RegisterInvoiceRouter(api)
 		routes.RegisterExpenseRouter(api)
 		routes.RegisterPaymentRouter(api)
+		routes.RegisterStatsRouter(api)
 	}
 	log.Println("Server is up and runnig")
 	r.Run()

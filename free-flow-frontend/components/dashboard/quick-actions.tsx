@@ -3,30 +3,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, UserPlus, Building2, UserRoundCog } from "lucide-react";
+import Link from "next/link";
 
 export function QuickActions() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          Quick Actions
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Button
           className="flex items-center gap-2 h-12 bg-transparent"
           variant="outline"
         >
           <Building2 className="h-4 w-4" />
-          New Client
+          <Link href="/dashboard/clients/create">New Client</Link>
         </Button>
         <Button
           className="flex items-center gap-2 h-12 bg-transparent"
           variant="outline"
         >
           <UserPlus className="h-4 w-4" />
-          Add Associate
+          <Link href="/dashboard/associates/create">Add Associate</Link>
         </Button>
         <Button
           className="flex items-center gap-2 h-12 bg-transparent"
@@ -35,7 +29,6 @@ export function QuickActions() {
           <UserRoundCog className="h-4 w-4" />
           Preferences
         </Button>
-      </CardContent>
-    </Card>
+      </div>
   );
 }
