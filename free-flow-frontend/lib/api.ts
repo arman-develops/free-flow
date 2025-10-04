@@ -249,5 +249,9 @@ export const statsApi = {
   getProjectDataStats: async () => {
     const response = await apiClient.get("/stats/dashboard/projects")
     return response.data
+  },
+  getAssociateStats: async () => {
+    const response = await apiClient.get("/stats/associates")
+    return response.data
   }
 }
