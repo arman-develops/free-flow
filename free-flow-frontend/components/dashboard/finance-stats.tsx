@@ -1,6 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { statsApi } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import {
   DollarSign,
   TrendingUp,
@@ -8,60 +10,99 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "$45,650",
-    change: "+15.2%",
-    changeType: "positive" as const,
-    icon: DollarSign,
-    description: "This year",
-  },
-  {
-    title: "Monthly Revenue",
-    value: "$12,450",
-    change: "+8.3%",
-    changeType: "positive" as const,
-    icon: TrendingUp,
-    description: "This month",
-  },
-  {
-    title: "Total Expenses",
-    value: "$14,320",
-    change: "+5.1%",
-    changeType: "negative" as const,
-    icon: TrendingDown,
-    description: "This year",
-  },
-  {
-    title: "Net Profit",
-    value: "$31,330",
-    change: "+18.7%",
-    changeType: "positive" as const,
-    icon: CheckCircle,
-    description: "This year",
-  },
-  {
-    title: "Pending Payments",
-    value: "$8,750",
-    change: "3 invoices",
-    changeType: "neutral" as const,
-    icon: Clock,
-    description: "Outstanding",
-  },
-  {
-    title: "Overdue Payments",
-    value: "$2,300",
-    change: "2 invoices",
-    changeType: "negative" as const,
-    icon: AlertTriangle,
-    description: "Past due",
-  },
-];
-
 export function FinanceStats() {
+
+  const {
+    data: financeStatsResponse,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ["finance_stats"],
+    queryFn: statsApi.getFinanceStats
+  })
+
+  if(isLoading) {
+    return (
+      <div>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600">Failed to load Dashboard</p>
+            <p className="text-sm text-muted-foreground">Please try again later</p>
+            <p>{`${error}`}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  const financeStats = financeStatsResponse.success ? financeStatsResponse.data : {}
+  const stats = [
+    {
+      title: "Total Revenue",
+      value: `KES ${financeStats.total_revenue?.toLocaleString() || 0}`,
+      change: `${financeStats.annual_revenue_change?.toFixed(1) || 0}%`,
+      changeType: financeStats.annual_revenue_change >= 0 ? "positive" : "negative" as const,
+      icon: DollarSign,
+      description: "This year",
+    },
+    {
+      title: "Monthly Revenue",
+      value: `KES ${financeStats.monthly_revenue?.toLocaleString() || 0}`,
+      change: `${financeStats.monthly_revenue_change?.toFixed(1) || 0}%`,
+      changeType: financeStats.monthly_revenue_change >= 0 ? "positive" : "negative" as const,
+      icon: TrendingUp,
+      description: "This month",
+    },
+    {
+      title: "Total Expenses",
+      value: `KES ${financeStats.total_expenses?.toLocaleString() || 0}`,
+      change: `${financeStats.monthly_expenses_change?.toFixed(1) || 0}%`,
+      changeType: financeStats.monthly_expenses_change >= 0 ? "negative" : "positive" as const, // ↑ expenses = bad
+      icon: TrendingDown,
+      description: "This year",
+    },
+    {
+      title: "Net Profit",
+      value: `KES ${financeStats.net_profit?.toLocaleString() || 0}`,
+      change: `${financeStats.annual_net_change?.toFixed(1) || 0}%`,
+      changeType: financeStats.annual_net_change >= 0 ? "positive" : "negative" as const,
+      icon: CheckCircle,
+      description: "This year",
+    },
+    {
+      title: "Pending Payments",
+      value: `KES ${financeStats.pending_payments?.toLocaleString() || 0}`,
+      change: `${financeStats.outstanding_invoices || 0} invoices`,
+      changeType: "neutral" as const,
+      icon: Clock,
+      description: "Outstanding",
+    },
+    {
+      title: "Overdue Payments",
+      value: `KES ${financeStats.overdue_payments?.toLocaleString() || 0}`,
+      change: `${financeStats.overdue_invoices || 0} invoices`,
+      changeType: financeStats.overdue_invoices > 0 ? "negative" : "neutral" as const,
+      icon: AlertTriangle,
+      description: "Past due",
+    },
+  ]
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {stats.map((stat) => {

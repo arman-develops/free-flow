@@ -17,7 +17,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Edit, Trash2, ArrowRight } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Trash2, ArrowRight, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { expensesApi } from "@/lib/api";
 
 const expenses = [
   {
@@ -74,13 +76,13 @@ const expenses = [
 
 const getCategoryBadge = (category: string) => {
   switch (category) {
-    case "Software":
+    case "software":
       return <Badge variant="default">Software</Badge>;
-    case "Hosting":
-      return <Badge variant="secondary">Hosting</Badge>;
-    case "Assets":
+    case "hardware":
+      return <Badge variant="secondary">Hardware</Badge>;
+    case "other":
       return <Badge variant="outline">Assets</Badge>;
-    case "Business":
+    case "outsourcing":
       return <Badge variant="outline">Business</Badge>;
     default:
       return <Badge variant="outline">{category}</Badge>;
@@ -101,6 +103,53 @@ const getStatusBadge = (status: string) => {
 };
 
 export function ExpensesTable() {
+
+  const {
+    data: expenseDataResponse,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ["expenses"],
+    queryFn: expensesApi.getExpensesByUser
+  })
+
+  if(isLoading) {
+    return (
+      <div>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600">Failed to load Dashboard</p>
+            <p className="text-sm text-muted-foreground">Please try again later</p>
+            <p>{`${error}`}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const allExpenses = expenseDataResponse.success ? expenseDataResponse.data : []
+  const recentExpenses = allExpenses?.length > 0 ? allExpenses
+    .filter((expenses:any) => expenses.date)
+    .sort(
+      (a:any, b:any) => {
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      }
+    )
+    .slice(0, 5) : []
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -111,66 +160,48 @@ export function ExpensesTable() {
         </Button>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {expenses.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell>
-                  <div>
-                    <div className="font-medium text-sm">
-                      {expense.description}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {expense.project}{" "}
-                      {expense.receipt && "• Receipt attached"}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{getCategoryBadge(expense.category)}</TableCell>
-                <TableCell>
-                  <div className="font-medium">
-                    ${expense.amount.toFixed(2)}
-                  </div>
-                </TableCell>
-                <TableCell>{expense.date}</TableCell>
-                <TableCell>{getStatusBadge(expense.status)}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Expense
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Expense
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        {recentExpenses && recentExpenses.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="w-[50px]">Project</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {recentExpenses.map((expense: any) => (
+                <TableRow key={expense.id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-sm">{expense.description}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {expense.vendor}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getCategoryBadge(expense.category)}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">
+                      {expense.currency} {expense.amount.toFixed(2)}
+                    </div>
+                  </TableCell>
+                  <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{expense?.project_name}</div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <p className="text-sm font-medium mb-1">No recent expenses</p>
+            <p className="text-xs">Your latest recorded expenses will appear here.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

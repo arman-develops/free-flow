@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, ArrowRight, Calendar, DollarSign } from "lucide-react";
+import { FolderOpen, ArrowRight, Calendar, DollarSign, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { DetailPanel } from "./details-panel";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,33 @@ export function ProjectProgress() {
     queryKey: ["projects"],
     queryFn: projectsApi.getProjectByUser
   })
+
+    if(isLoading) {
+      return (
+        <div>
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  
+    if (error) {
+      return (
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-red-600">Failed to load Dashboard</p>
+              <p className="text-sm text-muted-foreground">Please try again later</p>
+              <p>{`${error}`}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
 
   const allProjects = activeProjectsRequest?.success ? activeProjectsRequest.data : []
   

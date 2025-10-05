@@ -46,6 +46,21 @@ type AssociateStat struct {
 	EfficiencyDeviationPercent float64 `json:"efficiency_deviation_percent"`
 }
 
+type FinanceStat struct {
+	TotalRevenue          float64 `json:"total_revenue"`
+	AnnualChange          float64 `json:"annual_revenue_change"`
+	MonthlyRevenue        float64 `json:"monthly_revenue"`
+	MonthlyRevenueChange  float64 `json:"monthly_revenue_change"`
+	TotalExpenses         float64 `json:"total_expenses"`
+	MonthlyExpensesChange float64 `json:"monthly_expenses_change"`
+	Netprofit             float64 `json:"net_profit"`
+	AnnualNetChange       float64 `json:"annual_net_change"`
+	PendingPayments       float64 `json:"pending_payments"`
+	OutstandingInvoices   int64   `json:"outstanding_invoices"`
+	OverduePayments       float64 `json:"overdue_payments"`
+	OverdueInvoices       int64   `json:"overdue_invoices"`
+}
+
 func GetDashboardStats(c *gin.Context) {
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {
@@ -454,6 +469,234 @@ func GetAssociateStats(c *gin.Context) {
 		EfficiencyRatePercent:      efficiency_rate_percent,
 		RatingDeviation:            performance_rating_deviation,
 		EfficiencyDeviationPercent: efficiency_deviation_percent,
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, stats)
+}
+
+func GetFinanceStats(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	var (
+		total_revenue            float64
+		annual_revenue           float64
+		last_year_revenue        float64
+		annual_revenue_change    float64
+		monthly_revenue          float64
+		last_month_revenue       float64
+		monthly_revenue_change   float64
+		total_expenses           float64
+		last_month_expense       float64
+		monthly_expenses_change  float64
+		total_revenue_this_year  float64
+		total_revenue_last_year  float64
+		total_expenses_this_year float64
+		total_expenses_last_year float64
+		net_profit               float64
+		net_profit_last_year     float64
+		annual_net_change        float64
+		pending_payments         float64
+		outstanding_invoices     int64
+		overdue_payments         float64
+		overdue_invoices         int64
+	)
+
+	now := time.Now()
+	start_of_year := time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
+	start_of_last_year := time.Date(now.Year()-1, time.January, 1, 0, 0, 0, 0, now.Location())
+	end_of_last_year := start_of_year.Add(-time.Nanosecond)
+	start_of_this_month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	start_of_last_month := start_of_this_month.AddDate(0, -1, 0)
+	end_of_last_month := start_of_this_month.Add(-time.Nanosecond)
+
+	//total revenue
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND status = ?", userID, "confirmed").
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_revenue).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch total revenue")
+		return
+	}
+
+	//annual revenue change
+	//annual revenue this year
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND status = ?", userID, "confirmed").
+		Where("paid_date >= ?", start_of_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&annual_revenue).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch annual revenue")
+		return
+	}
+	//annual revenue last year
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND status = ?", userID, "confirmed").
+		Where("paid_date BETWEEN ? AND ?", start_of_last_year, end_of_last_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&last_year_revenue).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch last year's revenue")
+		return
+	}
+	//revenue change
+	if last_year_revenue > 0 {
+		annual_revenue_change = ((annual_revenue - last_year_revenue) / last_year_revenue) * 100
+	} else {
+		annual_revenue_change = 0
+	}
+
+	//monthly revenue (this month)
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND status = ?", userID, "confirmed").
+		Where("paid_date >= ?", start_of_this_month).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&monthly_revenue).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch monthly revenue")
+		return
+	}
+	//last months revenue
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND status = ?", userID, "confirmed").
+		Where("paid_date BETWEEN ? AND ?", start_of_last_month, end_of_last_month).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&last_month_revenue).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch last month's revenue")
+		return
+	}
+	//monthly revenue change
+	if last_month_revenue > 0 {
+		monthly_revenue_change = ((monthly_revenue - last_month_revenue) / last_month_revenue) * 100
+	} else {
+		monthly_revenue_change = 0
+	}
+
+	//total expenses (this month)
+	if err := config.DB.Model(&models.Expense{}).
+		Where("user_id = ?", userID).
+		Where("date >= ?", start_of_this_month).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_expenses).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch total expenses this month")
+		return
+	}
+
+	//total expenses last month
+	if err := config.DB.Model(&models.Expense{}).
+		Where("user_id = ?", userID).
+		Where("date BETWEEN ? AND ?", start_of_last_month, end_of_last_month).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&last_month_expense).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch last month's expenses")
+		return
+	}
+
+	//monthly expenses change
+	if last_month_expense > 0 {
+		monthly_expenses_change = ((total_expenses - last_month_expense) / last_month_expense) * 100
+	} else {
+		monthly_expenses_change = 0
+	}
+
+	//revenue this year and last year
+	// This year's revenue
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND paid_date >= ?", userID, start_of_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_revenue_this_year).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch this year's revenue")
+		return
+	}
+
+	// Last year's revenue
+	if err := config.DB.Model(&models.Payment{}).
+		Where("user_id = ? AND paid_date BETWEEN ? AND ?", userID, start_of_last_year, end_of_last_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_revenue_last_year).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch last year's revenue")
+		return
+	}
+
+	//expenses this year and last year
+	// This year's expenses
+	if err := config.DB.Model(&models.Expense{}).
+		Where("user_id = ? AND date >= ?", userID, start_of_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_expenses_this_year).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch this year's expenses")
+		return
+	}
+
+	// Last year's expenses
+	if err := config.DB.Model(&models.Expense{}).
+		Where("user_id = ? AND date BETWEEN ? AND ?", userID, start_of_last_year, end_of_last_year).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total_expenses_last_year).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch last year's expenses")
+		return
+	}
+
+	// Compute net profit for each year
+	net_profit = total_revenue_this_year - total_expenses_this_year
+	net_profit_last_year = total_revenue_last_year - total_expenses_last_year
+
+	// Compute annual change (percentage)
+	if net_profit_last_year != 0 {
+		annual_net_change = ((net_profit - net_profit_last_year) / net_profit_last_year) * 100
+	} else {
+		annual_net_change = 0
+	}
+
+	// Invoices marked as "sent" or "pending" but not yet "paid"
+	if err := config.DB.Model(&models.Invoice{}).
+		Where("user_id = ? AND status IN ?", userID, []string{"sent", "pending"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&pending_payments).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch pending payments")
+		return
+	}
+
+	// Total invoices still unpaid (not "paid" or "cancelled")
+	if err := config.DB.Model(&models.Invoice{}).
+		Where("user_id = ? AND status NOT IN ?", userID, []string{"paid", "cancelled"}).
+		Count(&outstanding_invoices).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch outstanding invoices count")
+		return
+	}
+
+	// Invoices past due date and not paid
+	if err := config.DB.Model(&models.Invoice{}).
+		Where("user_id = ? AND status NOT IN ? AND due_date < ?", userID, []string{"paid", "cancelled"}, now).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&overdue_payments).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch overdue payments total")
+		return
+	}
+
+	// Count invoices past due date and not yet paid
+	if err := config.DB.Model(&models.Invoice{}).
+		Where("user_id = ? AND status NOT IN ? AND due_date < ?", userID, []string{"paid", "cancelled"}, now).
+		Count(&overdue_invoices).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to fetch overdue invoices count")
+		return
+	}
+
+	stats := FinanceStat{
+		TotalRevenue:          total_revenue,
+		AnnualChange:          annual_revenue_change,
+		MonthlyRevenue:        monthly_revenue,
+		MonthlyRevenueChange:  monthly_revenue_change,
+		TotalExpenses:         total_expenses,
+		MonthlyExpensesChange: monthly_expenses_change,
+		Netprofit:             net_profit,
+		AnnualNetChange:       annual_net_change,
+		PendingPayments:       pending_payments,
+		OutstandingInvoices:   outstanding_invoices,
+		OverduePayments:       overdue_payments,
+		OverdueInvoices:       overdue_invoices,
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, stats)

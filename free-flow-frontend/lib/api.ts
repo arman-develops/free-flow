@@ -210,6 +210,10 @@ export const expensesApi = {
   create: async (data: CreateExpenseRequest) => {
     const response = await apiClient.post("/expense/", data)
     return response.data
+  },
+  getExpensesByUser: async () => {
+    const response = await apiClient.get("/expense/u")
+    return response.data
   }
 }
 
@@ -252,6 +256,10 @@ export const statsApi = {
   },
   getAssociateStats: async () => {
     const response = await apiClient.get("/stats/associates")
+    return response.data
+  },
+  getFinanceStats: async () => {
+    const response = await apiClient.get("/stats/finances")
     return response.data
   }
 }

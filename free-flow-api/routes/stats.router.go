@@ -15,5 +15,6 @@ func RegisterStatsRouter(rg *gin.RouterGroup) {
 		stats.GET("/dashboard/revenue", controllers.GetAnalyticsStats)
 		stats.GET("/dashboard/projects", controllers.GetProjectStats)
 		stats.GET("/associates", controllers.GetAssociateStats)
+		stats.GET("/finances", controllers.GetFinanceStats)
 	}
 }

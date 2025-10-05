@@ -13,8 +13,9 @@ func RegisterExpenseRouter(rg *gin.RouterGroup) {
 	{
 		expense.POST("/", controllers.CreateExpense)
 		expense.GET("/", controllers.GetExpenses)
-		expense.GET("/:id", controllers.GetExpenses)
+		expense.GET("/:id", controllers.GetExpenseByID)
 		expense.PUT("/:id", controllers.UpdateExpense)
 		expense.DELETE("/:id", controllers.DeleteExpense)
+		expense.GET("/u", controllers.GetExpenseByUserID)
 	}
 }

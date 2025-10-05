@@ -82,7 +82,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   })
 
   const {data: paymentsResponse, isLoading: paymentsLoading} = useQuery({
-    queryKey: ["payments"],
+    queryKey: ["payments_by_invoice"],
     queryFn: paymentApi.getPayments,
     enabled: type === "invoice" && !!data?.id,
   })
@@ -95,9 +95,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const tasks = associateTasks?.success ? associateTasks.data : []
 
   const allPayments = paymentsResponse?.success ? paymentsResponse?.data : []
-  const paymentsByInvoice = allPayments.filter((payment:any) => 
+  const paymentsByInvoice = allPayments?.length > 0 ? allPayments.filter((payment:any) => 
     payment.invoice_id === data?.id
-  )
+  ) : []
   const project = projectResponse?.success ? projectResponse.data : {}
   const projectDetails = project ?? data
 

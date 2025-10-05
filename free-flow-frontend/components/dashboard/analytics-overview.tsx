@@ -115,7 +115,7 @@ export function AnalyticsOverview() {
   })
   .filter((item) => item.value > 0);
 
-  const monthlyData = revenueDataResponse?.data?.revenue_stats || []
+  const monthlyData = revenueDataResponse.success ? revenueDataResponse?.data?.revenue_stats : []
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -128,29 +128,36 @@ export function AnalyticsOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              revenue: {
-                label: "Revenue",
-                color: "hsl(var(--chart-1))",
-              },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="revenue"
-                  fill="var(--color-chart-1)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {monthlyData && monthlyData.length > 0 ? (
+            <ChartContainer
+              config={{
+                revenue: {
+                  label: "Revenue",
+                  color: "hsl(var(--chart-1))",
+                },
+              }}
+              className="h-[200px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="revenue"
+                    fill="var(--color-chart-1)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[200px] text-center text-muted-foreground">
+              <p className="text-sm font-medium mb-1">No revenue data available</p>
+              <p className="text-xs">Your monthly revenue chart will appear here once you have payments recorded.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -163,45 +170,54 @@ export function AnalyticsOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center">
-            <ChartContainer config={categoriesConfig} className="h-[200px] w-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={projectTypeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {projectTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-          </div>
-          <div className="mt-4 space-y-2">
-            {projectTypeData.map((item) => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span>{item.name}</span>
-                </div>
-                <span className="font-medium">{item.value}%</span>
+          {projectTypeData && projectTypeData.length > 0 ? (
+            <>
+              <div className="flex items-center justify-center">
+                <ChartContainer config={categoriesConfig} className="h-[200px] w-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={projectTypeData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {projectTypeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
-            ))}
-          </div>
+
+              <div className="mt-4 space-y-2">
+                {projectTypeData.map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span>{item.name}</span>
+                    </div>
+                    <span className="font-medium">{item.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No project data available yet.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

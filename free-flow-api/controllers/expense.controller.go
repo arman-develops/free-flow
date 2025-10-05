@@ -22,6 +22,22 @@ type ExpenseInput struct {
 	Vendor      *string   `json:"vendor"`
 }
 
+type ExpenseWithProject struct {
+	ID          uuid.UUID `json:"id"`
+	Amount      float64   `json:"amount"`
+	Currency    string    `json:"currency"`
+	Category    string    `json:"category"`
+	Description string    `json:"description"`
+	Date        time.Time `json:"date"`
+	Status      string    `json:"status"`
+
+	// Project details
+	ProjectID       uuid.UUID `json:"project_id"`
+	ProjectName     string    `json:"project_name"`
+	ProjectCategory string    `json:"project_category"`
+	ProjectStatus   string    `json:"project_status"`
+}
+
 // CreateExpense godoc
 func CreateExpense(c *gin.Context) {
 	userID := c.GetString("userID")
@@ -70,6 +86,39 @@ func GetExpenses(c *gin.Context) {
 	var expenses []models.Expense
 	if err := config.DB.Find(&expenses).Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch expenses")
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, expenses)
+}
+
+// GetExpensesByuserID godoc
+func GetExpenseByUserID(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		return
+	}
+
+	var expenses []ExpenseWithProject
+	if err := config.DB.
+		Table("expenses").
+		Select(`
+			expenses.id,
+			expenses.amount,
+			expenses.currency,
+			expenses.category,
+			expenses.description,
+			expenses.date,
+			expenses.project_id,
+			projects.name AS project_name,
+			projects.category AS project_category,
+			projects.status AS project_status
+		`).
+		Joins("JOIN projects ON projects.id = expenses.project_id").
+		Where("expenses.user_id = ?", uuid.MustParse(userID)).
+		Scan(&expenses).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "expenses not found")
 		return
 	}
 
