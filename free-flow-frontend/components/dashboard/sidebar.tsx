@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   X,
+  Wallet,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -24,6 +25,7 @@ const sidebarItems = [
   { name: "Clients", href: "/dashboard/clients", icon: Users },
   { name: "Associates", href: "/dashboard/associates", icon: UserCheck },
   { name: "Finances", href: "/dashboard/finances", icon: DollarSign },
+  { name: "Settlements", href: "/dashboard/settlements", icon: Wallet },
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },

@@ -21,6 +21,7 @@ type AssociateSettlement struct {
 
 	ExpectedAmount int64  `json:"expected_amount"` // calculated from project actual value
 	SettledAmount  int64  `json:"settled_amount"`
+	TransactionRef string `json:"transaction_ref"`
 	Status         string `json:"status"` // pending | partially_settled | settled
 
 	Project   Project   `json:"-" gorm:"foreignKey:ProjectID"`

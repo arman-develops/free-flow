@@ -22,6 +22,7 @@ import {
   FolderOpen,
   Plus,
   DollarSignIcon,
+  Wallet,
 } from "lucide-react"
 
 interface Client {
@@ -268,6 +269,21 @@ export function HierarchicalSidebar() {
             >
               <DollarSignIcon className="h-4 w-4 flex-shrink-0" />
               {!isCollapsed && <span>Finances</span>}
+            </Button>
+          </Link>
+
+          {/* Settlements */}
+          <Link href="/dashboard/settlements">
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 text-gray-700 hover:bg-gray-100",
+                pathname.startsWith("/dashboard/settlements") && "bg-gray-100 text-gray-900 font-medium",
+                isCollapsed && "px-2",
+              )}
+            >
+              <Wallet className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span>Settlements</span>}
             </Button>
           </Link>
         </div>

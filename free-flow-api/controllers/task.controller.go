@@ -223,6 +223,13 @@ func UpdateTask(c *gin.Context) {
 		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to update the project")
 	}
 
+	// After successful update, call settlement upsert
+	if err := UpsertSettlementOnTaskAssignment(c, task); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to update associate settlement")
+		return
+	}
+
 	// Commit transaction
 	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to commit transaction")
