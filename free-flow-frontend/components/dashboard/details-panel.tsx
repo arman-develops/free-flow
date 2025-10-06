@@ -31,6 +31,9 @@ import {
   CreditCard,
   Clock,
   AlertCircle,
+  Wallet,
+  Receipt,
+  Users,
 } from "lucide-react"
 import { paymentApi, projectsApi, tasksApi } from "@/lib/api"
 import { useUpdateProject } from "@/hooks/use-projects"
@@ -42,11 +45,12 @@ import { AddExpenseDialog } from "./add-expense-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { AddPaymentDialog } from "./add-payment-dialog"
 import { queryClient } from "@/lib/query-client"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface DetailPanelProps {
   isOpen: boolean
   onClose: () => void
-  type: "client" | "project" | "task" | "associate" | "invoice" | null
+  type: "client" | "project" | "task" | "associate" | "invoice" | "payments" | "clients" | "expenses" | null
   data: any
   client?: any
 }
@@ -95,9 +99,6 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const tasks = associateTasks?.success ? associateTasks.data : []
 
   const allPayments = paymentsResponse?.success ? paymentsResponse?.data : []
-  const paymentsByInvoice = allPayments?.length > 0 ? allPayments.filter((payment:any) => 
-    payment.invoice_id === data?.id
-  ) : []
   const project = projectResponse?.success ? projectResponse.data : {}
   const projectDetails = project ?? data
 
@@ -169,6 +170,21 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
     }
   }
 
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case "software":
+        return <Badge variant="default">Software</Badge>;
+      case "hardware":
+        return <Badge variant="secondary">Hardware</Badge>;
+      case "other":
+        return <Badge variant="outline">Assets</Badge>;
+      case "outsourcing":
+        return <Badge variant="outline">Business</Badge>;
+      default:
+        return <Badge variant="outline">{category}</Badge>;
+    }
+  };
+
   const formatCurrency = (amount: number, currency: string) => {
     return `${currency} ${amount.toLocaleString()}`
   }
@@ -239,6 +255,166 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           <p className="text-sm text-gray-500">No projects yet</p>
         )}
       </div>
+    </div>
+  )
+
+  const renderAllPayments = () => (
+    <div className="space-y-3 pt-4 border-gray-200">
+      <div className="flex items-center gap-2">
+        <Wallet className="h-4 w-4 text-gray-700" />
+        <h4 className="font-medium text-gray-900">All Payments</h4>
+      </div>
+      <div className="space-y-2">
+        {data.length > 0 ? (
+          data.map((payment: any) => (
+            <div
+              key={payment.id}
+              className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors group"
+            >
+              {/* Top Row: Method + Amount + Status */}
+              <div className="flex items-center justify-between">
+                {/* Payment Method */}
+                <span className="font-medium text-sm group-hover:text-blue-600 capitalize">
+                  {payment.method}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  {/* Amount */}
+                  <Badge variant="outline" className="text-xs">
+                    {formatCurrency(payment.amount, payment.currency)}
+                  </Badge>
+
+                  {/* Status */}
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      payment.status === "confirmed"
+                        ? "bg-green-100 text-green-700"
+                        : payment.status === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {payment.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Middle: Invoice + Date + Ref */}
+              <p className="text-xs text-gray-600 mt-1 font-mono">
+                Invoice: {payment.invoice_number}
+              </p>
+              <p className="text-xs text-gray-500">
+                Paid on {new Date(payment.paid_date).toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500">Ref: {payment.transaction_ref}</p>
+
+              {/* Optional Notes */}
+              {payment.notes && (
+                <p className="text-xs text-gray-400 mt-1 italic">{payment.notes}</p>
+              )}
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-gray-400 italic">No payments found for this invoice.</p>
+        )}
+      </div>
+    </div>
+  )
+
+  const renderAllExpenses = () => (
+    <div className="space-y-3 pt-4 border-gray-200">
+      <div className="flex items-center gap-2">
+        <Receipt className="h-4 w-4 text-gray-700" />
+        <h4 className="font-medium text-gray-900">All Expenses</h4>
+      </div>
+      <div className="space-y-3">
+      {data.length > 0 ? (
+        data.map((expense: any) => (
+          <div
+            key={expense.id}
+            className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          >
+            {/* Top row: Project & Amount */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {expense.project_name}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {new Date(expense.date).toLocaleDateString()}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="text-sm font-bold text-gray-800">
+                  {formatCurrency(expense.amount, expense.currency)}
+                </p>
+                <Badge
+                  variant="outline"
+                  className={`text-xs mt-1 ${getCategoryBadge(expense.category)}`}
+                >
+                  {expense.category}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Middle row: Description */}
+            {expense.description && (
+              <p className="text-xs text-gray-600 mt-2">{expense.description}</p>
+            )}
+
+            {/* Bottom row: Vendor */}
+            <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+              <span className="italic">
+                Vendor:{" "}
+                <span className="not-italic font-medium text-gray-700">
+                  {expense.vendor || "N/A"}
+                </span>
+              </span>
+              <span className="font-mono text-gray-400">
+                Ref: {expense.id.slice(0, 8)}...
+              </span>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm text-gray-400 italic">No expenses recorded yet.</p>
+      )}
+    </div>
+    </div>
+  )
+
+  const renderAllClients = () => (
+    <div className="space-y-3 pt-4 border-gray-200">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-gray-700" />
+        <h4 className="font-medium text-gray-900">All Clients</h4>
+      </div>
+        <div className="space-y-2">
+          {data.map((client: any) => (
+            <div
+              key={client.id}
+              className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-gray-900">{client.companyName}</p>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <Phone className="h-3 w-3" />
+                      {client.contact}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <Mail className="h-3 w-3" />
+                      {client.email}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
     </div>
   )
 
@@ -780,6 +956,9 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
 
   const renderInvoiceDetails = () => {
     const overdue = isOverdue(data.due_date, data.status)
+    const paymentsByInvoice = allPayments.filter((payment:any) => 
+      payment.invoice_id === data?.id
+    )
 
     return (
       <div className="space-y-6">
@@ -925,7 +1104,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
               </div>
             ))}
           </div>
-        ) : paymentsByInvoice?.length ? (
+        ) : paymentsByInvoice.length > 0 ? (
           <div className="space-y-2">
             {paymentsByInvoice.map((payment: any) => (
               <div
@@ -983,12 +1162,17 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const renderNotes = () => (
     <div className="space-y-3">
       <h4 className="font-medium text-gray-900">Notes</h4>
-      <Textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="Add your notes here..."
-        className="min-h-[100px]"
-      />
+      {isEditing ? (
+          <Textarea
+            value={editData.notes}
+            onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+            className="min-h-[100px]"
+          />
+        ) : (
+          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+            {data?.notes || "No notes provided"}
+          </p>
+        )}
     </div>
   )
 
@@ -1003,7 +1187,15 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             size="sm"
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
             className="text-gray-600 hover:text-gray-900"
-            disabled={updateProject.isPending || updateTask.isPending || updateAssociate.isPending}
+            disabled={
+              updateProject.isPending || 
+              updateTask.isPending || 
+              updateAssociate.isPending || 
+              type === "clients" ||
+              type === "payments" ||
+              type === "expenses" || 
+              type === "invoice"
+            }
           >
             {isEditing ? <Save className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
           </Button>
@@ -1020,8 +1212,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         {type === "task" && renderEnhancedTaskDetails()}
         {type === "associate" && renderAssociateDetails()}
         {type === "invoice" && renderInvoiceDetails()}
+        {type === "clients" && renderAllClients()}
+        {type === "payments" && renderAllPayments()}
+        {type === "expenses" && renderAllExpenses()}
 
-        {type !== "invoice" && renderNotes()}
+        {["project", "payments", "invoice"].includes(type) && renderNotes()}
       </div>
 
       {/* Actions */}
@@ -1046,7 +1241,12 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           </Button>
         )}
 
-        <Button onClick={handleShare} variant="outline" className="w-full bg-transparent">
+        <Button 
+          onClick={handleShare} 
+          variant="outline" 
+          className="w-full bg-transparent"
+          disabled={!["project", "task", "invoice"].includes(type)}
+        >
           <Share2 className="h-4 w-4 mr-2" />
           Share
         </Button>

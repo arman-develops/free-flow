@@ -153,7 +153,17 @@ export function HierarchicalSidebar() {
           {!isCollapsed && (
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600">
+                <div 
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 cursor-pointer transition-shadow"
+                  onClick={() => {
+                    console.log(clients)
+                    window.dispatchEvent(
+                      new CustomEvent("openDetailPanel", {
+                        detail: {type: "clients", data: clients}
+                      })
+                    )
+                  }}
+                >
                   <Users className="h-4 w-4" />
                   <span>Clients</span>
                 </div>

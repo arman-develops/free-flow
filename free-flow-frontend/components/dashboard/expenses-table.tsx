@@ -11,68 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, Trash2, ArrowRight, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { expensesApi } from "@/lib/api";
-
-const expenses = [
-  {
-    id: 1,
-    description: "Adobe Creative Suite License",
-    category: "Software",
-    amount: 52.99,
-    date: "2024-12-01",
-    project: "General",
-    receipt: true,
-    status: "approved",
-  },
-  {
-    id: 2,
-    description: "Domain Registration - techcorp.com",
-    category: "Hosting",
-    amount: 12.99,
-    date: "2024-12-03",
-    project: "TechCorp Website",
-    receipt: true,
-    status: "approved",
-  },
-  {
-    id: 3,
-    description: "Stock Photos License",
-    category: "Assets",
-    amount: 29.99,
-    date: "2024-12-05",
-    project: "StartupXYZ App",
-    receipt: true,
-    status: "approved",
-  },
-  {
-    id: 4,
-    description: "Coffee Meeting with Client",
-    category: "Business",
-    amount: 15.5,
-    date: "2024-12-08",
-    project: "Portfolio Website",
-    receipt: false,
-    status: "pending",
-  },
-  {
-    id: 5,
-    description: "Cloud Storage Upgrade",
-    category: "Software",
-    amount: 9.99,
-    date: "2024-12-10",
-    project: "General",
-    receipt: true,
-    status: "approved",
-  },
-];
+import { expensesApi } from "@/lib/api"
+import { useEffect, useState } from "react";
+import { DetailPanel } from "./details-panel";
 
 const getCategoryBadge = (category: string) => {
   switch (category) {
@@ -89,20 +32,16 @@ const getCategoryBadge = (category: string) => {
   }
 };
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "approved":
-      return <Badge variant="secondary">Approved</Badge>;
-    case "pending":
-      return <Badge variant="default">Pending</Badge>;
-    case "rejected":
-      return <Badge variant="destructive">Rejected</Badge>;
-    default:
-      return <Badge variant="outline">Unknown</Badge>;
-  }
-};
-
 export function ExpensesTable() {
+
+  const [isExpensesPanelOpen, setIsExpensesPanelOpen] = useState(false)
+  const [allExpensesData, setAllExpensesData] = useState(null)
+  const [allExpensesBtnDisabled, setAllExpensesBtnDisabled] = useState(false)
+
+  const handleAllExpensesClick = (data:any) => {
+    setIsExpensesPanelOpen(true)
+    setAllExpensesData(data)
+  } 
 
   const {
     data: expenseDataResponse,
@@ -112,6 +51,19 @@ export function ExpensesTable() {
     queryKey: ["expenses"],
     queryFn: expensesApi.getExpensesByUser
   })
+
+  const allExpenses = expenseDataResponse?.success ? expenseDataResponse.data : []
+  const recentExpenses =
+    allExpenses?.length > 0
+      ? allExpenses
+          .filter((expense: any) => expense.date)
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()) // ✅ fix: return the difference
+          .slice(0, 5)
+      : [];
+
+  useEffect(() => {
+    setAllExpensesBtnDisabled(recentExpenses.length === 0);
+  }, [recentExpenses]);
 
   if(isLoading) {
     return (
@@ -140,21 +92,17 @@ export function ExpensesTable() {
     )
   }
 
-  const allExpenses = expenseDataResponse.success ? expenseDataResponse.data : []
-  const recentExpenses = allExpenses?.length > 0 ? allExpenses
-    .filter((expenses:any) => expenses.date)
-    .sort(
-      (a:any, b:any) => {
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      }
-    )
-    .slice(0, 5) : []
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Expenses</CardTitle>
-        <Button variant="ghost" size="sm" className="text-primary">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-primary"
+          onClick={() => handleAllExpensesClick(allExpenses)}
+          disabled={allExpensesBtnDisabled}
+        >
           View All
           <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
@@ -203,6 +151,12 @@ export function ExpensesTable() {
           </div>
         )}
       </CardContent>
+      <DetailPanel
+        isOpen={isExpensesPanelOpen}
+        onClose={() => setIsExpensesPanelOpen(false)}
+        type="expenses"
+        data={allExpensesData}
+      />
     </Card>
   );
 }

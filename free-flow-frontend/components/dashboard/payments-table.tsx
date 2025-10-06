@@ -30,64 +30,8 @@ import {
 } from "lucide-react";
 import { paymentApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
-const payments = [
-  {
-    id: 1,
-    invoice: "INV-001",
-    client: "TechCorp Inc.",
-    project: "Website Redesign",
-    amount: 3500,
-    status: "paid",
-    method: "project",
-    dueDate: "2024-12-10",
-    paidDate: "2024-12-08",
-  },
-  {
-    id: 2,
-    invoice: "INV-002",
-    client: "StartupXYZ",
-    project: "Mobile App Development",
-    amount: 2250,
-    status: "pending",
-    method: "task",
-    dueDate: "2024-12-15",
-    paidDate: null,
-  },
-  {
-    id: 3,
-    invoice: "INV-003",
-    client: "RetailCorp",
-    project: "E-commerce Platform",
-    amount: 4000,
-    status: "overdue",
-    method: "project",
-    dueDate: "2024-12-05",
-    paidDate: null,
-  },
-  {
-    id: 4,
-    invoice: "INV-004",
-    client: "Creative Agency",
-    project: "Portfolio Website",
-    amount: 1750,
-    status: "paid",
-    method: "project",
-    dueDate: "2024-12-12",
-    paidDate: "2024-12-11",
-  },
-  {
-    id: 5,
-    invoice: "INV-005",
-    client: "Global Solutions",
-    project: "Brand Identity",
-    amount: 1200,
-    status: "pending",
-    method: "task",
-    dueDate: "2024-12-20",
-    paidDate: null,
-  },
-];
+import { useEffect, useState } from "react";
+import { DetailPanel } from "./details-panel";
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -116,10 +60,32 @@ const getStatusBadge = (status: string) => {
 };
 
 export function PaymentsTable() {
+  const [allPaymentsBtnDisabled, setAllPaymentsBtnDisabled] = useState(false)
+  const [isPaymentsPanelOpen, setIsPaymentsPanelOpen] = useState(false)
+  const [allPaymentsData, setAllPaymentsData] = useState(null)
+
+  const handleAllPaymentsClick = (data:any) => {
+    setIsPaymentsPanelOpen(true)
+    setAllPaymentsData(data)
+  } 
+
   const {data: paymentsResponse, isLoading, error} = useQuery({
     queryKey: ["payments_by_invoice"],
     queryFn: paymentApi.getPayments,
   })
+
+  const allPayments = paymentsResponse?.success ? paymentsResponse.data : []
+  const recentPayments = allPayments?.length > 0 ? allPayments
+    ?.filter((payment: any) => payment.paid_date)
+    ?.sort(
+      (a: any, b: any) =>
+        new Date(b.paid_date).getTime() - new Date(a.paid_date).getTime()
+    )
+    .slice(0, 5) : []
+
+  useEffect(() => {
+    setAllPaymentsBtnDisabled(recentPayments.length === 0);
+  }, [recentPayments]);
 
   if(isLoading) {
     return (
@@ -148,20 +114,17 @@ export function PaymentsTable() {
     )
   }
 
-  const allPayments = paymentsResponse.success ? paymentsResponse.data : []
-  const recentPayments = allPayments?.length > 0 ? allPayments
-    ?.filter((payment: any) => payment.paid_date)
-    ?.sort(
-      (a: any, b: any) =>
-        new Date(b.paid_date).getTime() - new Date(a.paid_date).getTime()
-    )
-    .slice(0, 5) : []
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Payments</CardTitle>
-        <Button variant="ghost" size="sm" className="text-primary">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-primary" 
+          onClick={() => handleAllPaymentsClick(allPayments)}
+          disabled={allPaymentsBtnDisabled}
+        >
           View All
           <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
@@ -220,6 +183,12 @@ export function PaymentsTable() {
           </div>
         )}
       </CardContent>
+      <DetailPanel
+          isOpen={isPaymentsPanelOpen}
+          onClose={() => setIsPaymentsPanelOpen(false)}
+          type="payments"
+          data={allPaymentsData}
+      />
     </Card>
   );
 }

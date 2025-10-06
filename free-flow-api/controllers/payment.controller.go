@@ -33,9 +33,10 @@ type PaymentWithInvoice struct {
 	Notes          *string   `json:"notes"`
 
 	// Minimal invoice info
-	InvoiceNumber string  `json:"invoice_number"`
-	InvoiceAmount float64 `json:"invoice_amount"`
-	InvoiceStatus string  `json:"invoice_status"`
+	InvoiceID     uuid.UUID `json:"invoice_id"`
+	InvoiceNumber string    `json:"invoice_number"`
+	InvoiceAmount float64   `json:"invoice_amount"`
+	InvoiceStatus string    `json:"invoice_status"`
 }
 
 // CreatePayment godoc
@@ -129,7 +130,7 @@ func GetPaymentByUserID(c *gin.Context) {
 	var payments []PaymentWithInvoice
 	if err := config.DB.
 		Table("payments").
-		Select("payments.id, payments.amount, payments.currency, payments.method, payments.transaction_ref, payments.paid_date, payments.status, payments.notes, invoices.invoice_number, invoices.amount as invoice_amount, invoices.status as invoice_status").
+		Select("payments.id, payments.amount, payments.currency, payments.method, payments.transaction_ref, payments.paid_date, payments.status, payments.notes, invoices.invoice_number, invoices.amount as invoice_amount, invoices.status as invoice_status, invoices.id as invoice_id").
 		Joins("JOIN invoices ON invoices.id = payments.invoice_id").
 		Where("payments.user_id = ?", uuid.MustParse(userID)).
 		Scan(&payments).Error; err != nil {
