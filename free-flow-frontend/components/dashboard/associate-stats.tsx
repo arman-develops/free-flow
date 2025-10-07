@@ -87,8 +87,8 @@ export function AssociateStats() {
     },
     {
       title: "Avg. Performance",
-      value: `${associateStats.average_performance ?? 0}/5`,
-      change: `+${associateStats.rating_deviation ?? 0}`,
+      value: `${associateStats.average_performance.toFixed(1) ?? 0}/5`,
+      change: `${associateStats.rating_deviation.toFixed(1) ?? 0}%`,
       changeType: (associateStats.rating_deviation ?? 0) > 0 ? "positive" : "negative",
       icon: Star,
       description: "Rating score",
@@ -96,7 +96,7 @@ export function AssociateStats() {
     {
       title: "Efficiency Rate",
       value: `${associateStats.efficiency_rate_percent ?? 0}%`,
-      change: `+${associateStats.efficiency_deviation_percent ?? 0}%`,
+      change: `${associateStats.efficiency_deviation_percent ?? 0}%`,
       changeType: (associateStats.efficiency_deviation_percent ?? 0) > 0 ? "positive" : "negative",
       icon: TrendingUp,
       description: "On-time delivery",

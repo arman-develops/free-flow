@@ -61,6 +61,20 @@ type FinanceStat struct {
 	OverdueInvoices       int64   `json:"overdue_invoices"`
 }
 
+type AssociateSettlementStat struct {
+	TotalPayable              float64 `json:"total_payable"`
+	MonthlyPayableChange      float64 `json:"monthly_payable_change"`
+	TotalSettledThisMonth     float64 `json:"total_settled_this_month"`
+	MonthlyPayableOfTotal     float64 `json:"monthly_payable_of_total"`
+	OutstandingBalance        float64 `json:"outstanding_balance"`
+	PendingSettlements        int64   `json:"pending_settlements"`
+	AverageSettlementTime     float64 `json:"average_settlement_time"`
+	SettlementTimeImprovement float64 `json:"settlement_time_improvement"`
+	ActiveAsociates           int64   `json:"active_associates"`
+	PaymentSuccessRate        float64 `json:"payment_success_rate"`
+	TotalTransactions         int64   `json:"total_transactions"`
+}
+
 func GetDashboardStats(c *gin.Context) {
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {
@@ -700,4 +714,183 @@ func GetFinanceStats(c *gin.Context) {
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, stats)
+}
+
+func GetAssociateSettlementStats(c *gin.Context) {
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	var (
+		total_payable            float64
+		monthly_payable_change   float64
+		monthly_payable_of_total float64
+		totalSettledLastMonth    float64
+		totalSettledThisMonth    float64
+		outstanding_balance      float64
+		pending_settlements      int64
+		avgSettlementThisMonth   float64
+		avgSettlementLastMonth   float64
+		avgSettlementChange      float64
+		active_associates        int64
+		totalTransactions        int64
+		settledTransactions      int64
+		payment_success_rate     float64
+		total_transactions       int64
+	)
+
+	now := time.Now()
+	start_of_this_month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	start_of_last_month := start_of_this_month.AddDate(0, -1, 0)
+	end_of_last_month := start_of_this_month.Add(-time.Nanosecond)
+
+	//total payable
+	if err := config.DB.Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "pending").
+		Select("COALESCE(SUM(expected_amount), 0)").
+		Scan(&total_payable).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total payable")
+		return
+	}
+	// total settled this month
+	if err := config.DB.Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ? AND settled_at >= ? AND settled_at <= ?",
+			userID, "settled", start_of_this_month, now).
+		Select("COALESCE(SUM(expected_amount), 0)").
+		Scan(&totalSettledThisMonth).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total settled this month")
+		return
+	}
+	// total settled last month
+	if err := config.DB.Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ? AND settled_at >= ? AND settled_at <= ?",
+			userID, "settled", start_of_last_month, end_of_last_month).
+		Select("COALESCE(SUM(expected_amount), 0)").
+		Scan(&totalSettledLastMonth).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total settled last month")
+		return
+	}
+	// calculate monthly change
+	if totalSettledLastMonth != 0 {
+		monthly_payable_change = ((totalSettledThisMonth - totalSettledLastMonth) / totalSettledLastMonth) * 100
+	} else if totalSettledThisMonth > 0 {
+		// avoid division by zero — consider this 100% increase
+		monthly_payable_change = 100
+	} else {
+		monthly_payable_change = 0
+	}
+
+	// percentage of monthly payable from total payable
+	if total_payable != 0 {
+		monthly_payable_of_total = (totalSettledThisMonth / total_payable) * 100
+	} else {
+		monthly_payable_of_total = 0
+	}
+
+	//outstanding balance
+	outstanding_balance = total_payable - totalSettledThisMonth
+	//pending settlements
+	if err := config.DB.Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "pending").
+		Count(&pending_settlements).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total payable")
+		return
+	}
+
+	//avaerage settlement time
+	if err := config.DB.
+		Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "settled").
+		Where("settled_at >= ?", start_of_this_month).
+		Select("COALESCE(AVG(EXTRACT(EPOCH FROM (settled_at - created_at)) / 86400), 0)").
+		Scan(&avgSettlementThisMonth).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not calculate avg settlement time this month")
+		return
+	}
+
+	// Average settlement time last month (in days)
+	if err := config.DB.
+		Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "settled").
+		Where("settled_at BETWEEN ? AND ?", start_of_last_month, end_of_last_month).
+		Select("COALESCE(AVG(EXTRACT(EPOCH FROM (settled_at - created_at)) / 86400), 0)").
+		Scan(&avgSettlementLastMonth).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not calculate avg settlement time last month")
+		return
+	}
+
+	// Calculate change percentage
+	if avgSettlementLastMonth != 0 {
+		avgSettlementChange = ((avgSettlementThisMonth - avgSettlementLastMonth) / avgSettlementLastMonth) * 100
+	} else {
+		avgSettlementChange = 0 // avoid divide-by-zero
+	}
+
+	// active associates
+	if err := config.DB.
+		Model(&models.Associate{}).
+		Joins("JOIN tasks ON tasks.assigned_to_associate = associates.id").
+		Joins("JOIN projects ON projects.id = tasks.project_id").
+		Where("projects.is_outsourced = ?", true).
+		Where("projects.status != ?", "completed").
+		Where("tasks.status = ?", "in_progress").
+		Where("tasks.assigned_to_associate IS NOT NULL").
+		Where("projects.deleted_at IS NULL").
+		Group("associates.id").
+		Count(&active_associates).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to count active associates")
+		return
+	}
+
+	//total transactions
+	if err := config.DB.
+		Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "settled").
+		Count(&total_transactions).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total settled transactions")
+		return
+	}
+
+	// Total
+	if err := config.DB.
+		Model(&models.AssociateSettlement{}).
+		Where("user_id = ?", userID).
+		Count(&totalTransactions).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch total transactions")
+		return
+	}
+
+	// Settled
+	if err := config.DB.
+		Model(&models.AssociateSettlement{}).
+		Where("user_id = ? AND status = ?", userID, "settled").
+		Count(&settledTransactions).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "could not fetch settled transactions")
+		return
+	}
+
+	// Compute success rate
+	if totalTransactions > 0 {
+		payment_success_rate = (float64(settledTransactions) / float64(totalTransactions)) * 100
+	} else {
+		payment_success_rate = 0
+	}
+
+	resp := AssociateSettlementStat{
+		TotalPayable:              total_payable,
+		MonthlyPayableChange:      monthly_payable_change,
+		TotalSettledThisMonth:     totalSettledThisMonth,
+		MonthlyPayableOfTotal:     monthly_payable_of_total,
+		OutstandingBalance:        outstanding_balance,
+		PendingSettlements:        pending_settlements,
+		AverageSettlementTime:     avgSettlementThisMonth,
+		SettlementTimeImprovement: avgSettlementChange,
+		ActiveAsociates:           active_associates,
+		PaymentSuccessRate:        payment_success_rate,
+		TotalTransactions:         total_transactions,
+	}
+	utils.SendSuccessResponse(c, http.StatusOK, resp)
 }

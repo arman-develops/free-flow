@@ -261,5 +261,17 @@ export const statsApi = {
   getFinanceStats: async () => {
     const response = await apiClient.get("/stats/finances")
     return response.data
+  },
+  getSettlementStats: async () => {
+    const response = await apiClient.get("/stats/settlements")
+    return response.data
+  },
+  getRecentSettlements: async () => {
+    const response = await apiClient.get("/settlements/recent")
+    return response.data
+  },
+  getSettlementHistory: async () => {
+    const response = await apiClient.get("/settlements/history")
+    return response.data
   }
 }
