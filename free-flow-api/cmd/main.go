@@ -45,6 +45,7 @@ func main() {
 		routes.RegisterPaymentRouter(api)
 		routes.RegisterStatsRouter(api)
 		routes.RegisterSettlementRouter(api)
+		routes.RegisterMilestoneRouter(api)
 	}
 	log.Println("Server is up and runnig")
 	r.Run()

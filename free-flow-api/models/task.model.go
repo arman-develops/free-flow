@@ -24,8 +24,9 @@ type Task struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	ProjectID uuid.UUID `json:"project_id" gorm:"not null"`
-	Title     string    `json:"title" gorm:"not null"`
+	MilestoneID *uuid.UUID `json:"milestone_id" gorm:"index"`
+	ProjectID   uuid.UUID  `json:"project_id" gorm:"not null"`
+	Title       string     `json:"title" gorm:"not null"`
 
 	Description string     `json:"description"`
 	Status      TaskStatus `json:"status" gorm:"default:'todo'"` // "todo", "in_progress", "review", "done"
@@ -47,6 +48,7 @@ type Task struct {
 	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate"` // Foreign key to Associate
 
 	// Relationships
+	Milestone *Milestone `json:"milestone,omitempty" gorm:"foreignKey:MilestoneID"`
 	Project   Project    `json:"-" gorm:"foreignKey:ProjectID"`
 	Associate *Associate `json:"assigned_associate" gorm:"foreignKey:AssignedToAssociate"`
 }
@@ -59,11 +61,27 @@ func (u *Task) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (t *Task) AfterSave(tx *gorm.DB) (err error) {
-	return updateProjectStats(tx, t.ProjectID)
+	if err := updateProjectStats(tx, t.ProjectID); err != nil {
+		return err
+	}
+	if t.MilestoneID != nil {
+		if err := updateMilestoneStats(tx, *t.MilestoneID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (t *Task) AfterDelete(tx *gorm.DB) (err error) {
-	return updateProjectStats(tx, t.ProjectID)
+	if err := updateProjectStats(tx, t.ProjectID); err != nil {
+		return err
+	}
+	if t.MilestoneID != nil {
+		if err := updateMilestoneStats(tx, *t.MilestoneID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func updateProjectStats(tx *gorm.DB, projectID uuid.UUID) error {
@@ -104,5 +122,33 @@ func updateProjectStats(tx *gorm.DB, projectID uuid.UUID) error {
 		Updates(map[string]interface{}{
 			"actual_value":     totalValue,
 			"progress_percent": progress,
+		}).Error
+}
+func updateMilestoneStats(tx *gorm.DB, milestoneID uuid.UUID) error {
+	var totalTasks, completedTasks int64
+
+	if err := tx.Model(&Task{}).
+		Where("milestone_id = ?", milestoneID).
+		Count(&totalTasks).Error; err != nil {
+		return err
+	}
+
+	if err := tx.Model(&Task{}).
+		Where("milestone_id = ? AND status = ?", milestoneID, "done").
+		Count(&completedTasks).Error; err != nil {
+		return err
+	}
+
+	progress := 0
+	if totalTasks > 0 {
+		progress = int((float64(completedTasks) / float64(totalTasks)) * 100)
+	}
+
+	return tx.Model(&Milestone{}).
+		Where("id = ?", milestoneID).
+		Updates(map[string]interface{}{
+			"progress":        progress,
+			"tasks_count":     totalTasks,
+			"completed_tasks": completedTasks,
 		}).Error
 }

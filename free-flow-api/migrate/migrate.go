@@ -23,6 +23,7 @@ func main() {
 		&models.Invoice{},
 		&models.Payment{},
 		&models.AssociateSettlement{},
+		&models.Milestone{},
 	); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}
