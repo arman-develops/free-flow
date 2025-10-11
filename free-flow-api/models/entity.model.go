@@ -14,9 +14,11 @@ type Entity struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
 
-	CompanyName string `json:"companyName" gorm:"size:100;not null"`
-	Contact     string `json:"contact"`
-	Email       string `json:"email"`
+	CompanyName string  `json:"companyName" gorm:"size:100;not null"`
+	Contact     string  `json:"contact"`
+	Email       string  `json:"email"`
+	Address     *string `json:"address"`
+	Notes       *string `json:"notes"`
 
 	UserID uuid.UUID `json:"user_id" gorm:"not null"`
 

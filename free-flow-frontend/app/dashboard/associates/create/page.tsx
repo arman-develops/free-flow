@@ -145,7 +145,7 @@ export default function CreateAssociatePage() {
                   <Input
                     value={skillInput}
                     onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyPress={handleSkillKeyPress}
+                    onKeyUp={handleSkillKeyPress}
                     placeholder="Add a skill (e.g., React, Design, Marketing)"
                     className="h-11 border-gray-300 focus:border-gray-500 focus:ring-gray-500"
                   />

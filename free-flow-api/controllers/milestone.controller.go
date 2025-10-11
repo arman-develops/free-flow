@@ -5,18 +5,21 @@ import (
 	"free-flow-api/models"
 	"free-flow-api/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type CreateMilestoneInput struct {
-	Title        string    `json:"title" binding:"required"`
-	Description  string    `json:"description" binding:"required"`
-	Priority     string    `json:"priority" binding:"required,oneof=low medium high"`
-	Status       string    `json:"status" binding:"omitempty,oneof=not_started in_progress completed delayed"`
-	Deliverables []string  `json:"deliverables" binding:"omitempty"`
-	ProjectID    uuid.UUID `json:"project_id" binding:"required"`
+	Title         string    `json:"title" binding:"required"`
+	Description   string    `json:"description" binding:"required"`
+	Priority      string    `json:"priority" binding:"required,oneof=low medium high"`
+	Status        string    `json:"status" binding:"omitempty,oneof=not_started in_progress completed delayed"`
+	Deliverables  []string  `json:"deliverables" binding:"omitempty"`
+	ClientVisible bool      `json:"client_visible"`
+	DueDate       time.Time `json:"due_date"`
+	ProjectID     uuid.UUID `json:"project_id" binding:"required"`
 }
 
 func CreateMilestone(c *gin.Context) {
@@ -41,6 +44,7 @@ func CreateMilestone(c *gin.Context) {
 		Status:       input.Status,
 		Deliverables: input.Deliverables,
 		ProjectID:    input.ProjectID,
+		DueDate:      &input.DueDate,
 	}
 
 	if err := config.DB.Create(&milestone).Error; err != nil {
@@ -269,4 +273,46 @@ func DeleteMilestone(c *gin.Context) {
 	utils.SendSuccessResponse(c, http.StatusOK, gin.H{
 		"message": "milestone deleted successfully",
 	})
+}
+
+func AddTasksToMilestone(c *gin.Context) {
+	// Validate JWT token
+	userID := c.GetString("userID")
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	milestoneID := c.Param("id")
+
+	var input struct {
+		TaskIDs []uuid.UUID `json:"task_ids"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// validate milestone exists
+	var milestone models.Milestone
+	if err := config.DB.First(&milestone, "id = ?", milestoneID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "milestone not found"})
+		return
+	}
+
+	tx := config.DB.Begin()
+	for _, taskID := range input.TaskIDs {
+		if err := tx.Model(&models.Task{}).
+			Where("id = ?", taskID).
+			Update("milestone_id", milestone.ID).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update some tasks"})
+			return
+		}
+	}
+	tx.Commit()
+
+	c.JSON(http.StatusOK, gin.H{"message": "tasks added to milestone successfully"})
 }

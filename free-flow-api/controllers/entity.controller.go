@@ -12,9 +12,11 @@ import (
 )
 
 type Entityinput struct {
-	CompanyName string `json:"companyName" binding:"min=2,max=100"`
-	Contact     string `json:"contact" binding:"min=2,max=100"`
-	Email       string `json:"email" binding:"email"`
+	CompanyName string  `json:"companyName" binding:"min=2,max=100"`
+	Contact     string  `json:"contact" binding:"min=2,max=100"`
+	Email       string  `json:"email" binding:"email"`
+	Address     *string `json:"address,omitempty"`
+	Notes       *string `json:"notes,omitempty"`
 }
 
 func NewEntity(c *gin.Context) {

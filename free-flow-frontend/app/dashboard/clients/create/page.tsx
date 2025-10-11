@@ -26,8 +26,8 @@ export default function CreateClientPage() {
     mutationFn: clientsApi.create,
     onSuccess: () => {
       toast.success("Client created successfully!")
-      queryClient.invalidateQueries({ queryKey: ["clients", "dashbboard_stats"] })
-      router.push("/dashboard/clients")
+      queryClient.invalidateQueries({ queryKey: ["clients", "dashbboard_stats", "client"] })
+      router.push("/dashboard")
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to create client")

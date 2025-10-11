@@ -12,12 +12,12 @@ import (
 )
 
 type ProjectInput struct {
-	Name           string    `json:"name" binding:"required"`
-	Category       string    `json:"category" binding:"required"`
-	Description    string    `json:"description"`
-	EstimatedValue float64   `json:"estimated_value"`
-	Notes          string    `json:"notes"`
-	EntityID       uuid.UUID `json:"entityID" binding:"required"`
+	Name           string     `json:"name" binding:"required"`
+	Category       string     `json:"category" binding:"required"`
+	Description    string     `json:"description"`
+	EstimatedValue float64    `json:"estimated_value"`
+	Notes          string     `json:"notes"`
+	EntityID       *uuid.UUID `json:"entityID" binding:"required"`
 }
 
 type ProjectUpdateInput struct {
@@ -73,7 +73,8 @@ func NewProject(c *gin.Context) {
 	}
 
 	data := map[string]string{
-		"message": "Project Created Successfully",
+		"project_id": project.ID.String(),
+		"message":    "Project Created Successfully",
 	}
 	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }
@@ -296,6 +297,21 @@ func DeleteProject(c *gin.Context) {
 	var project models.Project
 	if err := config.DB.First(&project, "id = ?", projectID).Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusNotFound, "project not found")
+		return
+	}
+
+	// Find the entity
+	var entity models.Entity
+	if err := config.DB.First(&entity, "entity_id = ?", project.EntityID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "entity not found")
+		return
+	}
+
+	// Set entity_id to NULL in all related projects before deleting
+	if err := config.DB.Model(&models.Project{}).
+		Where("entity_id = ?", entity.ID).
+		Update("entity_id", nil).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to update related projects")
 		return
 	}
 

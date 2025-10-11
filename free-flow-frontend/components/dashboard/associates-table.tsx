@@ -72,8 +72,6 @@ const getStatusBadge = (status: string) => {
 
 export function AssociatesTable() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAssociateDetailOpen, setIsAssociateDetailOpen] = useState(false)
-  const [selectedAssociate, setSelectedAssociate] = useState<any>(null)
   const {
     data: associateResponse,
     isLoading,
@@ -84,8 +82,11 @@ export function AssociatesTable() {
   })
 
   const handleAssociateClick = (associate: any) => {
-    setSelectedAssociate(associate)
-    setIsAssociateDetailOpen(true)
+    window.dispatchEvent(
+      new CustomEvent("openDetailPanel", {
+        detail: {type: "associate", data: associate}
+      })
+    )
   }
 
     if (isLoading) {
@@ -252,13 +253,6 @@ export function AssociatesTable() {
           </TableBody>
         </Table>
       </CardContent>
-      {/* DetailPanel for associate details */}
-      <DetailPanel
-          isOpen={isAssociateDetailOpen}
-          onClose={() => setIsAssociateDetailOpen(false)}
-          type="associate"
-          data={selectedAssociate}
-        />
     </Card>
   );
 }

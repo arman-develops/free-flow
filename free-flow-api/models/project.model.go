@@ -39,9 +39,9 @@ type Project struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	UserID   uuid.UUID `json:"user_id" gorm:"not null"`
-	EntityID uuid.UUID `json:"entity_id" gorm:"not null"`
-	Name     string    `json:"name" gorm:"not null"`
+	UserID   uuid.UUID  `json:"user_id" gorm:"not null"`
+	EntityID *uuid.UUID `json:"entity_id"`
+	Name     string     `json:"name" gorm:"not null"`
 
 	// Project details
 	Category     string        `json:"category" gorm:"type:varchar(50)"`
@@ -62,7 +62,7 @@ type Project struct {
 
 	// Outsourcing
 	IsOutsourced   bool    `json:"is_outsourced" gorm:"default:false"`
-	YourCutPercent float64 `json:"your_cut_percent" gorm:"default:0.0"` // e.g., 30.0 for 30%
+	YourCutPercent float64 `json:"your_cut_percent" gorm:"default:45.0"` // e.g., 30.0 for 30%
 
 	// Progress
 	ProgressPercent int    `json:"progress_percent" gorm:"default:0"`

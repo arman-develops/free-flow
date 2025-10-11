@@ -192,6 +192,8 @@ func UpdateTask(c *gin.Context) {
 
 	if updates.AssignedToAssociate != nil {
 		updateMap["assigned_to_associate"] = *updates.AssignedToAssociate
+	} else {
+		updateMap["assigned_to_associate"] = nil
 	}
 
 	if updates.Status != nil {

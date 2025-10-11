@@ -34,10 +34,14 @@ import {
   Wallet,
   Receipt,
   Users,
+  MapPin,
+  Trash2,
 } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { paymentApi, projectsApi, tasksApi } from "@/lib/api"
-import { useUpdateProject } from "@/hooks/use-projects"
-import { useUpdateTask } from "@/hooks/use-tasks"
+import { useDeleteProject, useUpdateProject } from "@/hooks/use-projects"
+import { useDeleteTask, useUpdateTask } from "@/hooks/use-tasks"
 import { useUpdateAssociate } from "@/hooks/use-associates"
 import { toast } from "sonner"
 import { useAssociates } from "@/hooks/use-associates"
@@ -46,6 +50,7 @@ import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { AddPaymentDialog } from "./add-payment-dialog"
 import { queryClient } from "@/lib/query-client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useDeleteClient, useUpdateClient } from "@/hooks/use-clients"
 
 interface DetailPanelProps {
   isOpen: boolean
@@ -94,12 +99,16 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const updateProject = useUpdateProject()
   const updateTask = useUpdateTask()
   const updateAssociate = useUpdateAssociate()
+  const updateClient = useUpdateClient()
+  const deleteClient = useDeleteClient()
+  const deleteProject = useDeleteProject()
+  const deleteTask = useDeleteTask()
   const { data: associatesResponse } = useAssociates()
   const associates = associatesResponse?.success ? associatesResponse.data : []
   const tasks = associateTasks?.success ? associateTasks.data : []
 
   const allPayments = paymentsResponse?.success ? paymentsResponse?.data : []
-  const project = projectResponse?.success ? projectResponse.data : {}
+  const project = projectResponse?.success ? projectResponse?.data : {}
   const projectDetails = project ?? data
 
   if (!isOpen || !type || !data) return null
@@ -117,6 +126,8 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       } else if (type === "associate") {
         await updateAssociate.mutateAsync({ id: data.id, data: editData })
         toast.success("Associate updated successfully")
+      }else if(type === "client") {
+        await updateClient.mutateAsync({id: data.id, data: editData})
       }
       setIsEditing(false)
     } catch (error) {
@@ -138,6 +149,26 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
   const handleProjectClick = (projectId: string) => {
     router.push(`/dashboard/projects/${projectId}`)
     onClose() // Close the detail panel when navigating
+  }
+
+  const handleDeleteClient = async (clientID: string) => {
+    await deleteClient.mutateAsync(clientID)
+    onClose()
+  }
+
+  const handleDeleteProject = async (project_id: string) => {
+    await deleteProject.mutateAsync(project_id)
+    onClose()
+  }
+
+  const handleDeleteTask = async (task_id: string) => {
+    await deleteTask.mutateAsync(task_id)
+    onClose()
+  }
+
+  const handleUnAssignAssociate = async (task_id: string) => {
+    const task_data = {assigned_to_associate: null}
+    await updateTask.mutateAsync({id: task_id, data: task_data})
   }
 
   const getPriorityColor = (priority: string) => {
@@ -207,20 +238,94 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
       </div>
 
       <div className="space-y-4">
+        {/* Company Name */}
+        <div className="flex items-center gap-3">
+          <Building2 className="h-4 w-4 text-gray-400" />
+          {isEditing ? (
+            <Input
+              type="text"
+              value={editData?.companyName || ""}
+              onChange={(e) => setEditData({ ...editData, companyName: e.target.value })}
+              className="h-8 w-full"
+              placeholder="Enter company name"
+            />
+          ) : (
+            <span className="text-sm font-medium text-gray-900">{data.companyName}</span>
+          )}
+        </div>
+
+        {/* Email */}
         <div className="flex items-center gap-3">
           <Mail className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">{data.email}</span>
+          {isEditing ? (
+            <Input
+              type="email"
+              value={editData?.email || ""}
+              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+              className="h-8 w-full"
+              placeholder="Enter email"
+            />
+          ) : (
+            <span className="text-sm">{data.email}</span>
+          )}
         </div>
+
+        {/* Contact */}
         <div className="flex items-center gap-3">
           <Phone className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">{data.contact}</span>
+          {isEditing ? (
+            <Input
+              type="text"
+              value={editData?.contact || ""}
+              onChange={(e) => setEditData({ ...editData, contact: e.target.value })}
+              className="h-8 w-full"
+              placeholder="Enter contact number"
+            />
+          ) : (
+            <span className="text-sm">{data.contact}</span>
+          )}
         </div>
+
+        {/* Address */}
+        <div className="flex items-center gap-3">
+          <MapPin className="h-4 w-4 text-gray-400" />
+          {isEditing ? (
+            <Input
+              type="text"
+              value={editData?.address || ""}
+              onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+              className="h-8 w-full"
+              placeholder="Enter address"
+            />
+          ) : (
+            <span className="text-sm">{data.address || "not set"}</span>
+          )}
+        </div>
+
+        {/* Created At (Read-only) */}
         <div className="flex items-center gap-3">
           <Calendar className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">Created {new Date(data.CreatedAt).toLocaleDateString()}</span>
+          <span className="text-sm">
+            Created {new Date(data.CreatedAt).toLocaleDateString()}
+          </span>
+        </div>
+
+        {/* Notes */}
+        <div>
+          {isEditing ? (
+            <Textarea
+              value={editData?.notes || ""}
+              onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+              className="text-sm text-gray-700 bg-white p-3 rounded-lg border"
+              placeholder="Add client notes..."
+            />
+          ) : (
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {data.notes || "No Client Notes Provided Yet"}
+            </p>
+          )}
         </div>
       </div>
-
       <div className="space-y-3">
         <h4 className="font-medium text-gray-900">Projects</h4>
         {projectsLoading ? (
@@ -254,6 +359,16 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         ) : (
           <p className="text-sm text-gray-500">No projects yet</p>
         )}
+      </div>
+        <div className="pt-2 border-t mt-4 flex">
+          <Button
+            variant="destructive"
+            className="gap-2 bottom-0 w-full bg-red-500 hover:bg-red-500 text-white"
+            onClick={() => handleDeleteClient(data.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete Client
+          </Button>
       </div>
     </div>
   )
@@ -390,6 +505,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <Users className="h-4 w-4 text-gray-700" />
         <h4 className="font-medium text-gray-900">All Clients</h4>
       </div>
+
+      {data.length === 0 && (
+        <div className="px-6 py-2 text-xs text-gray-500">No clients yet</div>
+      )}
+
         <div className="space-y-2">
           {data.map((client: any) => (
             <div
@@ -462,7 +582,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Priority</Label>
             {isEditing ? (
               <Select
-                value={editData.priority || "medium"}
+                value={editData?.priority || "medium"}
                 onValueChange={(value) => setEditData({ ...editData, priority: value })}
               >
                 <SelectTrigger className="mt-1">
@@ -488,7 +608,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Current Phase</Label>
             {isEditing ? (
               <Select
-                value={editData.current_phase || "discovery"}
+                value={editData?.current_phase || "discovery"}
                 onValueChange={(value) => setEditData({ ...editData, current_phase: value })}
               >
                 <SelectTrigger className="mt-1">
@@ -531,32 +651,23 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             {isEditing ? (
               <Input
                 type="number"
-                value={editData.estimated_value || ""}
+                value={editData?.estimated_value || ""}
                 onChange={(e) => setEditData({ ...editData, estimated_value: Number.parseFloat(e.target.value) })}
                 className="mt-1"
               />
             ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <DollarSign className="h-3 w-3" />
-                {projectDetails?.estimated_value ? `${projectDetails?.currency || "$"}${projectDetails?.estimated_value}` : "Not set"}
+                {projectDetails?.estimated_value ? `${projectDetails?.currency || "$"} ${projectDetails?.estimated_value.toLocaleString()}` : "Not set"}
               </div>
             )}
           </div>
           <div>
-            <Label className="text-sm font-medium">Actual Value</Label>
-            {isEditing ? (
-              <Input
-                type="number"
-                value={editData.actual_value || ""}
-                onChange={(e) => setEditData({ ...editData, actual_value: Number.parseFloat(e.target.value) })}
-                className="mt-1"
-              />
-            ) : (
+            <Label className="text-sm font-medium">Task Budget</Label>
               <div className="flex items-center gap-1 text-sm mt-1">
                 <DollarSign className="h-3 w-3" />
                 {projectDetails?.actual_value ? `${projectDetails?.currency || "$"}${projectDetails?.actual_value}` : "Not set"}
               </div>
-            )}
           </div>
         </div>
 
@@ -566,7 +677,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             {isEditing ? (
               <Input
                 type="date"
-                value={editData.deadline ? new Date(editData.deadline).toISOString().split("T")[0] : ""}
+                value={editData?.deadline ? new Date(editData.deadline).toISOString().split("T")[0] : ""}
                 onChange={(e) => {
                   const date = new Date(e.target.value)
                   setEditData({ ...editData, deadline: date.toISOString() })
@@ -588,7 +699,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                 type="number"
                 min="0"
                 max="100"
-                value={editData.your_cut_percent || ""}
+                value={editData?.your_cut_percent || ""}
                 onChange={(e) => setEditData({ ...editData, your_cut_percent: Number.parseInt(e.target.value) })}
                 className="mt-1"
               />
@@ -604,7 +715,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
               {
                 isEditing ? ( 
                   <Select
-                    value={editData.category}
+                    value={editData?.category}
                     onValueChange={(value) => setEditData({...editData, category: value})}
                     required
                   >
@@ -616,7 +727,19 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                       <SelectItem value="mobile">Mobile Apps</SelectItem>
                       <SelectItem value="design">UI/UX Design</SelectItem>
                       <SelectItem value="consulting">Consulting</SelectItem>
-                      <SelectItem value="writing">Writing</SelectItem>
+                      <SelectItem value="writing">Writing & Content</SelectItem>
+                      <SelectItem value="marketing">Digital Marketing</SelectItem>
+                      <SelectItem value="branding">Branding & Identity</SelectItem>
+                      <SelectItem value="data">Data & Analytics</SelectItem>
+                      <SelectItem value="ai">AI & Automation</SelectItem>
+                      <SelectItem value="blockchain">Blockchain & Web3</SelectItem>
+                      <SelectItem value="ecommerce">E-commerce</SelectItem>
+                      <SelectItem value="finance">Finance & Accounting</SelectItem>
+                      <SelectItem value="education">Education & E-Learning</SelectItem>
+                      <SelectItem value="research">Research & Reports</SelectItem>
+                      <SelectItem value="health">Health & Wellness</SelectItem>
+                      <SelectItem value="ngo">NGO / Non-Profit Projects</SelectItem>
+                      <SelectItem value="consulting">Business Consulting</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -634,7 +757,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             <Label className="text-sm font-medium">Completed At</Label>
             <div className="flex items-center gap-1 text-sm mt-1">
               <CheckCircle2 className="h-3 w-3 text-green-600" />
-              {new Date(projectDetails.completed_at).toLocaleDateString()}
+              {new Date(projectDetails?.completed_at).toLocaleDateString()}
             </div>
           </div>
         )}
@@ -644,7 +767,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <h4 className="font-medium text-gray-900">Description</h4>
         {isEditing ? (
           <Textarea
-            value={editData.description}
+            value={editData?.description}
             onChange={(e) => setEditData({ ...editData, description: e.target.value })}
             className="min-h-[100px]"
           />
@@ -664,6 +787,12 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <Button onClick={() => handleProjectClick(data.id)} variant="outline" className="w-full">
           <ExternalLink className="h-4 w-4 mr-2" />
           View Project Details & Tasks
+        </Button>        
+      </div>
+      <div className="">
+        <Button onClick={() => handleDeleteProject(data.id)} className="w-full bg-red-500">
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Project
         </Button>
       </div>
     </div>
@@ -698,7 +827,6 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="review">Review</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
@@ -735,17 +863,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium">Estimated Hours</Label>
-            {isEditing ? (
-              <Input
-                type="number"
-                step="0.5"
-                value={editData.estimated_hours || ""}
-                onChange={(e) => setEditData({ ...editData, estimated_hours: Number.parseFloat(e.target.value) })}
-                className="mt-1"
-              />
-            ) : (
               <p className="text-sm text-gray-600 mt-1">{data.estimated_hours || 0}h</p>
-            )}
           </div>
           <div>
             <Label className="text-sm font-medium">Actual Hours</Label>
@@ -775,33 +893,12 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
           </div>
           <div>
             <Label className="text-sm font-medium">Assigned Associate</Label>
-            {isEditing ? (
-              <Select
-                value={editData.assigned_to_associate || "unassigned"}
-                onValueChange={(value) =>
-                  setEditData({ ...editData, assigned_to_associate: value === "unassigned" ? null : value })
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select associate" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {associates.map((associate: any) => (
-                    <SelectItem key={associate.id} value={associate.id}>
-                      {associate.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
               <div className="flex items-center gap-1 text-sm mt-1">
                 <User className="h-3 w-3" />
                 {data.assigned_to_associate
                   ? associates.find((a: any) => a.id === data.assigned_to_associate)?.name || "Unknown"
                   : "Unassigned"}
               </div>
-            )}
           </div>
           <div>
             <Label className="text-sm font-medium">Task Value</Label>
@@ -843,6 +940,14 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             {data.description || "No description provided"}
           </p>
         )}
+      </div>
+      <div className="space-y-2">
+        <div className="">
+          <Button onClick={() => handleDeleteTask(data.id)} className="w-full bg-red-500">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Task
+          </Button>
+        </div>
       </div>
     </div>
   )
@@ -940,7 +1045,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
                     <span className="font-medium text-sm group-hover:text-blue-600">{task.title}</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">${task.task_value}</Badge>
-                      <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                      <Trash2 className="h-5 w-5 text-gray-400 group-hover:text-red-500" onClick={() => handleUnAssignAssociate(task.id)} />
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{task.description}</p>
@@ -1169,9 +1274,11 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
             className="min-h-[100px]"
           />
         ) : (
-          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-            {data?.notes || "No notes provided"}
-          </p>
+          <div className="prose prose-gray max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {notes || "_No notes provided yet._"}
+            </ReactMarkdown>
+          </div>
         )}
     </div>
   )
@@ -1216,7 +1323,7 @@ export function DetailPanel({ isOpen, onClose, type, data, client }: DetailPanel
         {type === "payments" && renderAllPayments()}
         {type === "expenses" && renderAllExpenses()}
 
-        {["project", "payments", "invoice"].includes(type) && renderNotes()}
+        {/* {["project", "payments", "invoice"].includes(type) && renderNotes()} */}
       </div>
 
       {/* Actions */}

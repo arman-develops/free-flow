@@ -32,12 +32,16 @@ import {
   Calendar,
   Clock,
   FileText,
+  UserCheck,
 } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { projectsApi, tasksApi } from "@/lib/api"
 import { toast } from "sonner"
 import { DetailPanel } from "@/components/dashboard/details-panel"
 import { EnhancedTasksView } from "@/components/dashboard/enhanced-tasks-view"
 import { MilestonesView } from "@/components/dashboard/milestones-view"
+import AssociatesAssignedView from "@/components/dashboard/associates-assigned-view"
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -46,8 +50,6 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string
 
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
-  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("tasks")
   const [taskFormData, setTaskFormData] = useState({
     title: "",
@@ -124,8 +126,11 @@ export default function ProjectDetailPage() {
   }
 
   const handleTaskClick = (task: any) => {
-    setSelectedTask(task)
-    setIsTaskDetailOpen(true)
+    window.dispatchEvent(
+      new CustomEvent("openDetailPanel", {
+        detail: {type: "task", data: task}
+      })
+    )
   }
 
   const taskStats = {
@@ -195,7 +200,7 @@ export default function ProjectDetailPage() {
             </div>
             <div className="space-y-2 pt-3 border-t border-emerald-100">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Actual Value</span>
+                <span className="text-gray-600">Project Valuation</span>
                 <span className="font-semibold text-gray-900">
                   {project?.data?.currency} {project?.data?.actual_value?.toLocaleString() || 0}
                 </span>
@@ -328,8 +333,10 @@ export default function ProjectDetailPage() {
           {project?.data?.notes && (
             <div className="mt-6 pt-6 border-t border-gray-100">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Project Notes</p>
-              <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-200">
-                {project.data.notes}
+              <p className="prose prose-gray max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {project.data.notes || "_No notes yet_"}
+                </ReactMarkdown>
               </p>
             </div>
           )}
@@ -338,7 +345,7 @@ export default function ProjectDetailPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-[400px] grid-cols-2">
+          <TabsList className="grid w-[600px] grid-cols-3">
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
               Tasks
@@ -346,6 +353,10 @@ export default function ProjectDetailPage() {
             <TabsTrigger value="milestones" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
               Milestones
+            </TabsTrigger>
+            <TabsTrigger value="associates" className="flex items-center gap-2">
+              <UserCheck className="h4 w-4" />
+              Associates
             </TabsTrigger>
           </TabsList>
 
@@ -434,15 +445,10 @@ export default function ProjectDetailPage() {
         <TabsContent value="milestones" className="space-y-4">
           <MilestonesView projectId={projectId} />
         </TabsContent>
+        <TabsContent value="associates" className="space-y-4">
+          <AssociatesAssignedView projectID={projectId} projectCurrency={project?.data?.currency} />
+        </TabsContent>
       </Tabs>
-
-      {/* DetailPanel for task details */}
-      <DetailPanel
-        isOpen={isTaskDetailOpen}
-        onClose={() => setIsTaskDetailOpen(false)}
-        type="task"
-        data={selectedTask}
-      />
     </div>
   )
 }

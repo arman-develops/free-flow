@@ -19,16 +19,11 @@ export default function Dashboard() {
             Welcome back!
           </p>
         </div>
+        <QuickActions />
       </div>
-      
-      {/* Quick Actions */}
-      <QuickActions />
 
-      {/* Stats Grid */}
       <DashboardStats />
 
-      {/* Main Content Grid */}
-      {/* Analytics Overview */}
       <AnalyticsOverview />
 
       <ProjectProgress />

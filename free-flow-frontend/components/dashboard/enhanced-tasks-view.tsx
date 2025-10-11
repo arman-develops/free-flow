@@ -22,8 +22,12 @@ import {
   PlayCircle,
   PauseCircle,
   Target,
+  UserPlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AssignAssociatesDialog } from "./assign-associate-dialog"
+import { useQuery } from "@tanstack/react-query"
+import { associatesApi } from "@/lib/api"
 
 interface Task {
   id: string
@@ -49,6 +53,23 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
   const [viewMode, setViewMode] = useState<"list" | "board">("list")
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+
+  const handleAssignAssociate = (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedTask(task)
+    setIsAssignDialogOpen(true)
+  }
+
+  const {
+    data: associateResponse,
+    isLoading: associateLoading,
+    error: associateError,
+  } = useQuery({
+    queryKey: ["associates"],
+    queryFn: associatesApi.getAssociatesByUserID
+  })
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -129,6 +150,7 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
 
     return matchesSearch && matchesStatus && matchesPriority
   })
+  const associates = associateResponse?.success ? associateResponse?.data : []
 
   const getProgressPercentage = (task: Task) => {
     if (task.status === "completed") return 100
@@ -259,6 +281,10 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={(e) => handleAssignAssociate(task, e)}>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Assign Associate
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
@@ -342,6 +368,16 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
           })
         )}
       </div>
+        {selectedTask && (
+          <AssignAssociatesDialog
+            isOpen={isAssignDialogOpen}
+            onClose={() => setIsAssignDialogOpen(false)}
+            taskId={selectedTask.id}
+            taskTitle={selectedTask.title}
+            currentAssociateId={selectedTask.assigned_associate}
+            associates={associates}
+          />
+        )}
     </div>
   )
 }

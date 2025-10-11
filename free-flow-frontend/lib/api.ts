@@ -14,7 +14,6 @@ interface SignupRequest {
 
 interface AuthResponse {
   user: {
-    id: string
     email: string
     firstName?: string
     lastName?: string
@@ -80,6 +79,14 @@ interface CreatePaymentRequest {
   phoneNumber: string
 }
 
+interface CreateMilestoneRequest {
+  title: string,
+  description: string,
+  due_date: string,
+  priority: string,
+  deliverables: string[],
+  client_visible: boolean
+}
 interface ApiResponse {
   success: boolean
   data: {
@@ -117,14 +124,19 @@ export const clientsApi = {
     return response.data
   },
 
-  getAll: async () => {
-    const response = await apiClient.get("/clients")
+  updateClient: async (clientID: string, data: any) => {
+    const response = await apiClient.put(`/entity/${clientID}`, data)
     return response.data
   },
+  
+  deleteClient: async (clientID:string) => {
+    const response = await apiClient.delete(`/entity/${clientID}`)
+    return response.data
+  }
 }
 
 export const projectsApi = {
-  create: async (data: CreateProjectRequest): Promise<ApiResponse> => {
+  create: async (data: CreateProjectRequest) => {
     const response = await apiClient.post("/project/", data)
     return response.data
   },
@@ -146,6 +158,10 @@ export const projectsApi = {
 
   updateProject: async (projectID: string, data: any) => {
     const response = await apiClient.put(`/project/${projectID}`, data)
+    return response.data
+  },
+  deleteProject: async (projectID: string) => {
+    const response = await apiClient.delete(`/project/${projectID}`)
     return response.data
   }
 }
@@ -172,7 +188,6 @@ export const tasksApi = {
   },
 
   updateTask: async (taskID: string, data: any) => {
-    console.log(data)
     const response = await apiClient.put(`/task/${taskID}`, data)
     return response.data
   },
@@ -180,8 +195,7 @@ export const tasksApi = {
   deleteTask: async (projectID: string) => {
     const response = await apiClient.delete(`/task/${projectID}`)
     return response.data
-  }
-
+  },
 }
 
 export const associatesApi = {
@@ -272,6 +286,25 @@ export const statsApi = {
   },
   getSettlementHistory: async () => {
     const response = await apiClient.get("/settlements/history")
+    return response.data
+  }
+}
+
+export const milestoneApi = {
+  create: async (data:CreateMilestoneRequest) => {
+    const response = await apiClient.post("/milestone/", data)
+    return response.data
+  },
+  milestonesByProject: async (projectID: string) => {
+    const response = await apiClient.get(`/milestone/p/${projectID}`)
+    return response.data
+  },
+  addTasks: async (milestone_id: string, task_ids: string[]) => {
+    const response = await apiClient.put(`milestone/${milestone_id}/add`, {task_ids})
+    return response.data
+  },
+  deleteMilestone: async (milestoneID: string) => {
+    const response = await apiClient.delete(`/milestone/${milestoneID}`)
     return response.data
   }
 }

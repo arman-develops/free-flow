@@ -30,10 +30,11 @@ export default function CreateProjectPage() {
 
   const createProjectMutation = useMutation({
     mutationFn: projectsApi.create,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log(data)
       toast.success("Project created successfully!")
       queryClient.invalidateQueries({ queryKey: ["projects"] })
-      router.push("/dashboard")
+      router.push(`/dashboard/projects/${data.data.project_id}`)
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to create project")

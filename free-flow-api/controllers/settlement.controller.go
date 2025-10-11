@@ -15,36 +15,52 @@ import (
 )
 
 func UpsertSettlementOnTaskAssignment(c *gin.Context, task models.Task) error {
-	//validate jwt
+	// Validate JWT
 	userID := c.GetString("userID")
 	if !utils.IsAuthenticated(userID) {
 		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
 		c.Abort()
+		return errors.New("unauthorized user")
 	}
 
-	if task.AssignedToAssociate == nil || task.TaskValue == nil {
-		return nil // no associate or value, nothing to record
+	// 🧩 CASE 1: If associate was unassigned → nullify or delete settlement
+	if task.AssignedToAssociate == nil {
+		// You can choose to delete or just mark as unassigned.
+		// Option A: Delete the settlement record
+		if err := config.DB.
+			Where("task_id = ?", task.ID).
+			Delete(&models.AssociateSettlement{}).Error; err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	// Calculate expected amount based on cut percentage (from project)
+	// 🧩 CASE 2: If no task value, skip (no settlement to record)
+	if task.TaskValue == nil {
+		return nil
+	}
+
+	// 🧩 CASE 3: Upsert logic (assign or reassign)
 	var project models.Project
 	if err := config.DB.First(&project, "id = ?", &task.ProjectID).Error; err != nil {
 		return err
 	}
 
-	percentage := 100 - project.YourCutPercent // e.g. 25.0
+	// Calculate associate cut
+	percentage := 100 - project.YourCutPercent
 	expectedAmount := int64(*task.TaskValue * (percentage / 100.0))
 
 	var existing models.AssociateSettlement
-	err := config.DB.First(&existing, "task_id = ? AND associate_id = ?", task.ID, *task.AssignedToAssociate).Error
+	err := config.DB.First(&existing, "task_id = ?", task.ID).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// Create new record
+		// New record (first assignment)
 		settlement := models.AssociateSettlement{
 			ProjectID:      task.ProjectID,
 			TaskID:         task.ID,
 			AssociateID:    *task.AssignedToAssociate,
-			UserID:         uuid.MustParse(userID), // assuming preloaded
+			UserID:         uuid.MustParse(userID),
 			PercentageCut:  percentage,
 			ExpectedAmount: expectedAmount,
 			SettledAmount:  0,
@@ -57,9 +73,10 @@ func UpsertSettlementOnTaskAssignment(c *gin.Context, task models.Task) error {
 		return err
 	}
 
-	// Update existing (e.g. if task value changed)
-	existing.ExpectedAmount = expectedAmount
+	// Update existing record (reassignment or task value change)
+	existing.AssociateID = *task.AssignedToAssociate
 	existing.PercentageCut = percentage
+	existing.ExpectedAmount = expectedAmount
 	existing.UpdatedAt = time.Now()
 
 	return config.DB.Save(&existing).Error

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { associatesApi } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 
 export function useAssociates() {
   return useQuery({
@@ -17,8 +18,6 @@ export function useAssociate(id: string) {
 }
 
 export function useCreateAssociate() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: associatesApi.create,
     onSuccess: () => {
@@ -28,8 +27,6 @@ export function useCreateAssociate() {
 }
 
 export function useUpdateAssociate() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => associatesApi.updateAssociate(id, data),
     onSuccess: (_, variables) => {

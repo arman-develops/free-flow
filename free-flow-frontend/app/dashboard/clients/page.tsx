@@ -10,7 +10,7 @@ export default function TasksPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/dashboard/clients")
+      router.push("/dashboard")
     }, 3000)
 
     return () => clearTimeout(timer)

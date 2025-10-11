@@ -17,5 +17,6 @@ func RegisterMilestoneRouter(rg *gin.RouterGroup) {
 		milestone.GET("/p/:id", controllers.GetMilestonesByProjectID)
 		milestone.PUT("/:id", controllers.UpdateMilestone)
 		milestone.DELETE("/:id", controllers.DeleteMilestone)
+		milestone.PUT("/:id/add", controllers.AddTasksToMilestone)
 	}
 }

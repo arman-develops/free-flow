@@ -75,7 +75,19 @@ export function HierarchicalSidebar() {
     const projects = projectsResponse?.success ? projectsResponse.data : []
 
     if (projectsLoading) {
-      return <div className="px-4 py-1 text-xs text-gray-400">Loading projects...</div>
+      return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-32 bg-gray-200 rounded mb-6"></div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
     }
 
     if (!projects.length) {
@@ -156,7 +168,6 @@ export function HierarchicalSidebar() {
                 <div 
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 cursor-pointer transition-shadow"
                   onClick={() => {
-                    console.log(clients)
                     window.dispatchEvent(
                       new CustomEvent("openDetailPanel", {
                         detail: {type: "clients", data: clients}
