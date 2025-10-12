@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthWrapper } from "@/components/auth/auth-wrapper";
 import { Suspense } from "react";
 import { Providers } from "@/components/providers";
+import './globals.css'
 
 export const metadata: Metadata = {
   title: "FreeFlow - Project Management Dashboard",
