@@ -11,7 +11,7 @@ import { Lock, Eye, EyeOff, Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PasswordSetupProps {
-  onComplete: (data: { password: string; confirmPassword: string }) => void
+  onComplete: (data: { password: string }) => void
 }
 
 interface PasswordRequirement {
@@ -41,7 +41,7 @@ export function PasswordSetup({ onComplete }: PasswordSetupProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (canSubmit) {
-      onComplete({ password, confirmPassword })
+      onComplete({ password })
     }
   }
 

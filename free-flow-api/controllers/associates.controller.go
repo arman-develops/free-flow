@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"free-flow-api/config"
 	"free-flow-api/models"
 	"free-flow-api/utils"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type AssociateInput struct {
@@ -35,21 +37,35 @@ func NewAssociate(c *gin.Context) {
 	}
 	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
 
-	//create an associate
-	associate := models.Associate{
-		Name:   input.Name,
-		Email:  input.Email,
-		Phone:  input.Phone,
-		Skills: input.Skills,
-		UserID: uuid.MustParse(userID),
-	}
-	if err := config.DB.Create(&associate).Error; err != nil {
-		utils.SendErrorResponse(c, http.StatusInternalServerError, "failed to create a new associate")
+	// Create associate and profile in one transaction
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Create the associate
+		associate := models.Associate{
+			Name:   input.Name,
+			Email:  input.Email,
+			Phone:  input.Phone,
+			Skills: input.Skills,
+			UserID: uuid.MustParse(userID),
+		}
+
+		if err := tx.Create(&associate).Error; err != nil {
+			return fmt.Errorf("failed to create associate: %w", err)
+		}
+
+		if err := CreateAssociateProfileTx(tx, c, associate.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	data := map[string]string{
-		"message": "Associate created successfully",
+		"message": "Associate and a linked profile created successfully",
 	}
 	utils.SendSuccessResponse(c, http.StatusCreated, data)
 }

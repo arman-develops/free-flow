@@ -10,13 +10,11 @@ import { PasswordSetup } from "@/components/associate/password-setup"
 import { ProfileSetup } from "@/components/associate/profile-setup"
 import { WelcomeScreen } from "@/components/associate/welcome-screen"
 import { Loader2 } from "lucide-react"
+import { ProfessionalDetailsSetup } from "@/components/associate/professional-details"
 
 interface OnboardingData {
   password: string
-  confirmPassword: string
-  firstName: string
-  lastName: string
-  phone?: string
+  phone_number?: string
   timezone?: string
 }
 
@@ -28,20 +26,22 @@ export default function OnboardingPage() {
   const [onboardingData, setOnboardingData] = useState<Partial<OnboardingData>>({})
   const setAssociate = useAssociateStore((state) => state.setAssociate)
   const setIsAuthenticated = useAssociateStore((state) => state.setIsAuthenticated)
+  const setToken = useAssociateStore((state) => state.setToken)
 
   const completeMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
       const response = await apiClient.post(`/associate/onboarding/${token}`, data)
+      console.log(response.data)
       return response.data
     },
     onSuccess: (data) => {
       // Store auth token
-      localStorage.setItem("associate-token", data.token)
+      setToken(data.data.token)
       // Set associate data
-      setAssociate(data.associate)
+      setAssociate(data.data.associate)
       setIsAuthenticated(true)
       // Move to welcome screen
-      setCurrentStep(4)
+      setCurrentStep(5)
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {
         router.push("/associate/dashboard")
@@ -49,21 +49,37 @@ export default function OnboardingPage() {
     },
   })
 
-  const handlePasswordComplete = (data: { password: string; confirmPassword: string }) => {
+  const handlePasswordComplete = (data: { password: string }) => {
     setOnboardingData((prev) => ({ ...prev, ...data }))
     setCurrentStep(2)
   }
 
   const handleProfileComplete = (data: {
-    firstName: string
-    lastName: string
-    phone?: string
-    timezone?: string
+    phone_number?: string
+    profile_photo_url?: string
+    bio?: string
+  }) => {
+    setOnboardingData((prev) => ({ ...prev, ...data }))
+    setCurrentStep(3)
+  }
+
+  const handleProfessionalComplete = (data: {
+    linkedin_url?: string
+    portfolio_url?: string
+    website_url?: string
+    skills?: string[]
   }) => {
     const completeData = { ...onboardingData, ...data } as OnboardingData
     setOnboardingData(completeData)
-    setCurrentStep(3)
+    setCurrentStep(4)
     // Submit onboarding
+    completeMutation.mutate(completeData)
+  }
+
+  const handleSkipProfessional = () => {
+    const completeData = onboardingData as OnboardingData
+    setCurrentStep(4)
+    // Submit onboarding without professional details
     completeMutation.mutate(completeData)
   }
 
@@ -78,15 +94,24 @@ export default function OnboardingPage() {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Progress Steps */}
-        {currentStep < 4 && <OnboardingSteps currentStep={currentStep} />}
+        {currentStep < 5 && <OnboardingSteps currentStep={currentStep} />}
 
         {/* Step Content */}
         <div className="mt-8">
           {currentStep === 1 && <PasswordSetup onComplete={handlePasswordComplete} />}
 
-          {currentStep === 2 && <ProfileSetup onComplete={handleProfileComplete} />}
+          {currentStep === 2 && (
+            <ProfileSetup token={token} onComplete={handleProfileComplete} />
+          )}
 
           {currentStep === 3 && (
+            <ProfessionalDetailsSetup
+              onComplete={handleProfessionalComplete}
+              onSkip={handleSkipProfessional}
+            />
+          )}
+
+          {currentStep === 4 && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center space-y-4">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
@@ -96,7 +121,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {currentStep === 4 && <WelcomeScreen />}
+          {currentStep === 5 && <WelcomeScreen />}
         </div>
       </div>
     </div>

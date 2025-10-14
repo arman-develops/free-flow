@@ -8,7 +8,8 @@ interface OnboardingStepsProps {
 const steps = [
   { number: 1, title: "Set Password", description: "Secure your account" },
   { number: 2, title: "Complete Profile", description: "Tell us about yourself" },
-  { number: 3, title: "All Set", description: "Ready to start" },
+  {number: 3, title: "Professional Details", description: "Professional details to stand out"},
+  { number: 4, title: "All Set", description: "Ready to start" },
 ]
 
 export function OnboardingSteps({ currentStep }: OnboardingStepsProps) {

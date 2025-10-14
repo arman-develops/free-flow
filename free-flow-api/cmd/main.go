@@ -19,7 +19,10 @@ func main() {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  []string{"http://localhost:3000"},
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:3410",
+		},
 		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:  []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders: []string{"Content-Length"},
@@ -46,6 +49,7 @@ func main() {
 		routes.RegisterStatsRouter(api)
 		routes.RegisterSettlementRouter(api)
 		routes.RegisterMilestoneRouter(api)
+		routes.RegisterOnboardingRouter(api)
 	}
 	log.Println("Server is up and runnig")
 	r.Run()

@@ -11,12 +11,18 @@ import { useRouter } from "next/navigation"
 export default function AssociateDashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const isAuthenticated = useAssociateStore((state) => state.isAuthenticated)
+  const hasHydrated = useAssociateStore((state) => state._hasHydrated)
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (hasHydrated && !isAuthenticated) {
       router.push("/associate/login")
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, hasHydrated, router])
+
+  // Show loading state while hydrating
+  if (!hasHydrated) {
+    return null // or a loading spinner
+  }
 
   if (!isAuthenticated) {
     return null

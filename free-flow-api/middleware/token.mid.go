@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"free-flow-api/config"
+	"free-flow-api/utils"
 	"net/http"
 	"strings"
 
@@ -32,6 +33,20 @@ func VerifyToken() gin.HandlerFunc {
 		claims := token.Claims.(*config.JWTCustomClaims)
 		c.Set("userID", claims.UserID)
 
+		c.Next()
+	}
+}
+
+func VerifyOnboardingToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Param("token")
+		associateID, err := utils.VerifyAndExtractAssociateID(token)
+		if err != nil {
+			utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid token")
+			c.Abort()
+			return
+		}
+		c.Set("associateID", associateID.String())
 		c.Next()
 	}
 }

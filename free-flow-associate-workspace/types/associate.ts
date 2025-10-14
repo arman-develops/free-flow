@@ -2,14 +2,11 @@
 export interface Associate {
   id: string
   email: string
-  firstName: string
-  lastName: string
+  full_name: string
   avatar?: string
-  phone?: string
-  timezone?: string
-  status: "pending" | "active" | "inactive" | "suspended"
-  createdAt: string
-  updatedAt: string
+  phone_number?: string
+  created_at: string
+  updated_at: string
 }
 
 // Contract & Task Invite Types

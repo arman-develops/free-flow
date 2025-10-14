@@ -20,10 +20,12 @@ type Associate struct {
 	Email  string    `json:"email"`
 	Phone  string    `json:"phone"`
 
+	Status string         `json:"status" gorm:"default:'pending'"`
 	Skills pq.StringArray `json:"skills" gorm:"type:text[]"`
 
-	User     User      `json:"-" gorm:"foreignKey:UserID"`
-	Projects []Project `json:"projects" gorm:"many2many:project_associates;"`
+	User     User              `json:"-" gorm:"foreignKey:UserID"`
+	Projects []Project         `json:"projects" gorm:"many2many:project_associates;"`
+	Profile  *AssociateProfile `gorm:"foreignKey:AssociateID;constraint:OnDelete:CASCADE"`
 }
 
 func (u *Associate) BeforeCreate(tx *gorm.DB) (err error) {

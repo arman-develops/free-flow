@@ -25,12 +25,19 @@ interface AssociateState {
   isAuthenticated: boolean
   setIsAuthenticated: (isAuthenticated: boolean) => void
   logout: () => void
+
+  _hasHydrated: boolean
+  setHasHydrated: (hasHydrated: boolean) => void
+
+  // Auth State
+  token: string | null
+  setToken: (token: string | null) => void
 }
 
 export const useAssociateStore = create<AssociateState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         // Associate Profile
         associate: null,
         setAssociate: (associate) => set({ associate }),
@@ -81,6 +88,10 @@ export const useAssociateStore = create<AssociateState>()(
             notifications: [],
             unreadCount: 0,
           }),
+          _hasHydrated: false,
+          setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
+          token: null,
+          setToken: (token) => set({ token }),
       }),
       {
         name: "freeflow-associate-storage",
@@ -88,7 +99,11 @@ export const useAssociateStore = create<AssociateState>()(
           associate: state.associate,
           sidebarCollapsed: state.sidebarCollapsed,
           isAuthenticated: state.isAuthenticated,
+          token: state.token
         }),
+        onRehydrateStorage: () => (state) => {
+          state?.setHasHydrated(true)
+        },
       },
     ),
   ),

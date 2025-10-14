@@ -1,3 +1,4 @@
+import { useAssociateStore } from "@/stores/associate-store"
 import axios from "axios"
 
 // Create axios instance with default config
@@ -12,7 +13,7 @@ export const apiClient = axios.create({
 // Request interceptor for adding auth token
 apiClient.interceptors.request.use(
   (config:any) => {
-    const token = localStorage.getItem("associate-token")
+    const token = useAssociateStore.getState().token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
