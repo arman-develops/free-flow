@@ -91,7 +91,14 @@ export const useAssociateStore = create<AssociateState>()(
           _hasHydrated: false,
           setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
           token: null,
-          setToken: (token) => set({ token }),
+          setToken: (token) => {
+            set({ token })
+            if (token) {
+              localStorage.setItem("associate-token", token)
+            } else {
+              localStorage.removeItem("associate-token")
+            }
+          },
       }),
       {
         name: "freeflow-associate-storage",

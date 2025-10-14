@@ -8,9 +8,9 @@ import (
 )
 
 func RegisterOnboardingRouter(rg *gin.RouterGroup) {
-	onboarding := rg.Group("/associate/onboarding")
+	onboarding := rg.Group("/onboarding/")
 	onboarding.Use(middleware.VerifyOnboardingToken())
 	{
-		onboarding.POST("/:token", controllers.OnboardAssociate)
+		onboarding.POST("/associate/:token", controllers.OnboardAssociate)
 	}
 }

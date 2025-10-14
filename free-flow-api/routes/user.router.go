@@ -11,5 +11,6 @@ func RegisterUserRouter(rg *gin.RouterGroup) {
 	{
 		users.POST("/signup", controllers.Signup)
 		users.POST("/login", controllers.Login)
+		users.POST("/associate/login", controllers.AssociateLogin)
 	}
 }

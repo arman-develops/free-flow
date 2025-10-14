@@ -1,4 +1,24 @@
 // Core Associate Types
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export interface LoginResponse {
+  data: {
+    associate: {
+      id: string
+      email: string
+      full_name: string
+      phone_number: string
+      avatar: string
+      created_at: string
+      updated_at: string
+    }
+    token: string
+  }
+}
+
 export interface Associate {
   id: string
   email: string

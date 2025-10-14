@@ -6,6 +6,7 @@ import (
 	"free-flow-api/models"
 	"free-flow-api/utils"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,11 @@ type OnboardInput struct {
 	PortfolioURL    string   `json:"portfolio_url"`
 	LinkedInURL     string   `json:"linkedin_url"`
 	WebsiteURL      string   `json:"website_url"`
+}
+
+type AssociateLoginInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6,max=64"`
 }
 
 func CreateAssociateProfileTx(tx *gorm.DB, c *gin.Context, associateID uuid.UUID) error {
@@ -148,6 +154,53 @@ func OnboardAssociate(c *gin.Context) {
 			"phone_number": profile.PhoneNumber,
 			"created_at":   profile.CreatedAt,
 			"update_at":    profile.UpdatedAt,
+		},
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, data)
+}
+
+func AssociateLogin(c *gin.Context) {
+	var input AssociateLoginInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
+
+	var associate models.Associate
+	if err := config.DB.Where("email = ?", input.Email).First(&associate).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+
+	var associateProfile models.AssociateProfile
+	if err := config.DB.Where("associate_id = ?", associate.ID).First(&associateProfile).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "invalid associate credentials")
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(associateProfile.PasswordHash), []byte(input.Password)); err != nil {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+
+	token, err := config.GenerateToken(associate.ID.String(), 24*time.Hour)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "Failed to create jwt token")
+		return
+	}
+	data := gin.H{
+		"token": token,
+		"associate": gin.H{
+			"id":           associate.ID,
+			"email":        associate.Email,
+			"full_name":    associate.Name,
+			"avatar":       associateProfile.ProfilePhotoURL,
+			"phone_number": associateProfile.PhoneNumber,
+			"created_at":   associateProfile.CreatedAt,
+			"update_at":    associateProfile.UpdatedAt,
 		},
 	}
 

@@ -30,7 +30,7 @@ export default function OnboardingPage() {
 
   const completeMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
-      const response = await apiClient.post(`/associate/onboarding/${token}`, data)
+      const response = await apiClient.post(`/onboarding/associate/${token}`, data)
       console.log(response.data)
       return response.data
     },

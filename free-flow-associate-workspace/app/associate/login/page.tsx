@@ -12,76 +12,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-interface LoginCredentials {
-  email: string
-  password: string
-}
-
-interface LoginResponse {
-  associate: {
-    id: string
-    email: string
-    full_name: string
-    phone_number: string
-    avatar: string
-    created_at: string
-    updated_at: string
-  }
-  token: string
-}
-
-// Mock login function - replace with your actual API call
-const loginAssociate = async (credentials: LoginCredentials): Promise<LoginResponse> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1500))
-  
-  // Mock validation
-  if (credentials.email === "dc@mail.net" && credentials.password === "Arman3003$") {
-    return {
-      associate: {
-        id: "f7f89209-253c-4f8b-a244-0efbd8b605ce",
-        email: credentials.email,
-        full_name: "Declan Rice",
-        phone_number: "+25471234568",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Declan",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      token: "mock_token_12345",
-    }
-  }
-  
-  throw new Error("Invalid email or password")
-}
+import { AuthApi } from "@/lib/api"
+import { useLogin } from "@/hooks/use-auth"
 
 export default function AssociateLoginPage() {
-  const router = useRouter()
-  const { setAssociate, setIsAuthenticated } = useAssociateStore()
-  const setToken = useAssociateStore((state) => state.setToken)
-  
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
 
-  const loginMutation = useMutation({
-    mutationFn: loginAssociate,
-    onSuccess: (data) => {
-      // Store associate data and auth state
-      setAssociate(data.associate)
-      setIsAuthenticated(true)
-      
-      // Store token (you might want to use httpOnly cookies instead)
-      setToken(data.token)
-      
-      // Redirect to dashboard
-      router.push("/associate/dashboard")
-    },
-    onError: (error: Error) => {
-      setError(error.message || "An error occurred during login")
-    },
-  })
+  const loginMutation = useLogin()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,7 +32,7 @@ export default function AssociateLoginPage() {
       return
     }
     
-    loginMutation.mutate({ email, password })
+    loginMutation.mutate({email, password})
   }
 
   return (
