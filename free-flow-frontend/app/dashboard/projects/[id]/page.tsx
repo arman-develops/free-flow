@@ -345,7 +345,7 @@ export default function ProjectDetailPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-[600px] grid-cols-3">
+          <TabsList className="grid w-[800px] grid-cols-4">
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
               Tasks
@@ -358,12 +358,16 @@ export default function ProjectDetailPage() {
               <UserCheck className="h4 w-4" />
               Associates
             </TabsTrigger>
+            <TabsTrigger value="contracts" className="flex items-center gap-2">
+              <FileText className="h4 w-4" />
+              Contracts
+            </TabsTrigger>
           </TabsList>
 
           {activeTab === "tasks" && (
             <Dialog open={isCreateTaskOpen} onOpenChange={setIsCreateTaskOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white">
+                <Button className="flex items-center gap-3 bg-gray-900 hover:bg-gray-800 text-white">
                   <Plus className="h-4 w-4" />
                   Add Task
                 </Button>

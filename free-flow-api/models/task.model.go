@@ -49,7 +49,7 @@ type Task struct {
 
 	// Relationships
 	Milestone *Milestone `json:"milestone,omitempty" gorm:"foreignKey:MilestoneID"`
-	Project   Project    `json:"-" gorm:"foreignKey:ProjectID"`
+	Project   Project    `json:"project" gorm:"foreignKey:ProjectID"`
 	Associate *Associate `json:"assigned_associate" gorm:"foreignKey:AssignedToAssociate"`
 }
 

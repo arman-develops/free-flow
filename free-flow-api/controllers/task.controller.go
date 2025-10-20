@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type TaskInput struct {
@@ -104,7 +105,11 @@ func GetAllTasksByProjectID(c *gin.Context) {
 	projectID := c.Param("id")
 
 	var allTasks []models.Task
-	if err := config.DB.Find(&allTasks, "project_id = ?", projectID).Error; err != nil {
+	if err := config.DB.
+		Preload("Project", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "name", "description")
+		}).
+		Find(&allTasks, "project_id = ?", projectID).Error; err != nil {
 		utils.SendErrorResponse(c, http.StatusNotFound, "Tasks Not Found")
 		c.Abort()
 		return

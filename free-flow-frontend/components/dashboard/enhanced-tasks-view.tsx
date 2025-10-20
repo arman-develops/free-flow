@@ -23,11 +23,14 @@ import {
   PauseCircle,
   Target,
   UserPlus,
+  FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AssignAssociatesDialog } from "./assign-associate-dialog"
-import { useQuery } from "@tanstack/react-query"
-import { associatesApi } from "@/lib/api"
+import { useQueries, useQuery } from "@tanstack/react-query"
+import { associatesApi, contractApi } from "@/lib/api"
+import ContractModal from "./contract-creator"
+import { Contract, Contracts } from "@/types/contract"
 
 interface Task {
   id: string
@@ -38,8 +41,12 @@ interface Task {
   estimated_hours: number
   actual_hours: number
   due_date?: string
-  assigned_associate?: string
+  assigned_to_associate?: string
   milestone?: string
+  project: {
+    name: string
+    description: string
+  }
 }
 
 interface EnhancedTasksViewProps {
@@ -55,12 +62,29 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
   const [viewMode, setViewMode] = useState<"list" | "board">("list")
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [contracts, setContracts] = useState<Contract[]>();
+  const [selectedContract, setSelectedContract] = useState<Contract>();
 
   const handleAssignAssociate = (task: Task, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedTask(task)
     setIsAssignDialogOpen(true)
   }
+
+  const openContract = (task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  // Fetch contract by task ID
+  const contractQueries = useQueries({
+    queries: tasks.map(task => ({
+      queryKey: ['contract', task.id],
+      queryFn: () => contractApi.contractByTaskID(task.id),
+      enabled: !!task.id,
+    })),
+  });
 
   const {
     data: associateResponse,
@@ -226,12 +250,15 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
             </CardContent>
           </Card>
         ) : (
-          filteredTasks?.map((task) => {
+          filteredTasks?.map((task, index) => {
             const statusConfig = getStatusConfig(task.status)
             const priorityConfig = getPriorityConfig(task.priority)
             const StatusIcon = statusConfig.icon
             const progress = getProgressPercentage(task)
             const overdue = isOverdue(task.due_date)
+            const contractQuery = contractQueries[index];
+            const hasContract = contractQuery.data?.success && contractQuery.data?.data;
+            const contract = contractQuery.data?.data
 
             return (
               <Card
@@ -284,6 +311,15 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                             <DropdownMenuItem onClick={(e) => handleAssignAssociate(task, e)}>
                               <UserPlus className="h-4 w-4 mr-2" />
                               Assign Associate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                                onClick={(e) => { 
+                                e.stopPropagation()
+                                openContract(task)
+                              }
+                            }>
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Contract
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                               <Eye className="h-4 w-4 mr-2" />
@@ -347,10 +383,10 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                             {task.actual_hours || 0}h / {task.estimated_hours}h
                           </span>
                         </div>
-                        {task.assigned_associate && (
+                        {task.assigned_to_associate && (
                           <div className="flex items-center gap-1.5">
                             <User className="h-4 w-4" />
-                            <span>{task.assigned_associate}</span>
+                            <span>{task.assigned_to_associate}</span>
                           </div>
                         )}
                         {task.due_date && (
@@ -361,6 +397,28 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                         )}
                       </div>
                     </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-4">
+                    {contractQuery.isLoading ? (
+                      <Badge variant="outline">Checking...</Badge>
+                    ) : hasContract ? (
+                      <Badge 
+                        className="bg-green-100 text-green-800 border-green-200" 
+                        onClick={
+                          (e) => {
+                            e.stopPropagation()
+                            openContract(task)
+                          }        
+                        }
+                      >
+                        <FileText />
+                        Contract Available
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-gray-100 text-gray-600 border-gray-200">
+                        No Contract
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -374,8 +432,24 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
             onClose={() => setIsAssignDialogOpen(false)}
             taskId={selectedTask.id}
             taskTitle={selectedTask.title}
-            currentAssociateId={selectedTask.assigned_associate}
+            currentAssociateId={selectedTask.assigned_to_associate}
             associates={associates}
+          />
+        )}
+        {selectedTask && (
+          <ContractModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedTask(null);
+            }}
+            taskId={selectedTask.id}
+            contract_metadata={{
+              project_name: selectedTask.project?.name || "",
+              project_description: selectedTask.project?.description || "",
+              task_name: selectedTask.title,
+              task_description: selectedTask.description || "",
+            }}
           />
         )}
     </div>

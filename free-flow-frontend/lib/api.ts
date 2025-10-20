@@ -87,6 +87,18 @@ interface CreateMilestoneRequest {
   deliverables: string[],
   client_visible: boolean
 }
+
+export interface CreateContractRequest {
+  role: string
+  responsibilities: string[]
+  effort: string
+  deliverables: string[]
+  start_date: string
+  end_date: string
+  task_id: string
+  project_id: string
+}
+
 interface ApiResponse {
   success: boolean
   data: {
@@ -305,6 +317,29 @@ export const milestoneApi = {
   },
   deleteMilestone: async (milestoneID: string) => {
     const response = await apiClient.delete(`/milestone/${milestoneID}`)
+    return response.data
+  }
+}
+
+export const contractApi = {
+  create: async (data: CreateContractRequest) => {
+    const response = await apiClient.post(`contract/`, data)
+    return response.data
+  },
+  contractByTaskID: async (taskID: string) => {
+    const response = await apiClient.get(`contract/t/${taskID}`)
+    return response.data
+  },
+  contractsByProjectID: async (projectID: string) => {
+    const response = await apiClient.get(`contract/p/${projectID}`)
+    return response.data    
+  },
+  updateContract: async (contractID: string, data: any) => {
+    const response = await apiClient.put(`contract/${contractID}`, data)
+    return response.data
+  },
+  deleteContract: async (contractID: string) => {
+    const response = await apiClient.delete(`contract/${contractID}`)
     return response.data
   }
 }
