@@ -8,6 +8,7 @@ import { ContractPanel } from "@/components/associate/contract-panel"
 import { TaskInvitePanel } from "@/components/associate/task-invite-panel"
 import { Loader2 } from "lucide-react"
 import type { Contract, TaskInvite } from "@/types/associate"
+import { InviteApi } from "@/lib/api"
 
 interface InviteData {
   contract: Contract
@@ -27,11 +28,8 @@ export default function AcceptInvitePage() {
   })
 
   const { data, isLoading, error } = useQuery<InviteData>({
-    queryKey: ["invite", token],
-    queryFn: async () => {
-      const response = await apiClient.get(`/associate/invites/${token}`)
-      return response.data
-    },
+    queryKey: ["invite_details"],
+    queryFn: () => InviteApi.getInviteDetails(token)
   })
 
   useEffect(() => {

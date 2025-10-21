@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"free-flow-api/config"
+	"free-flow-api/models"
 	"free-flow-api/utils"
 	"net/http"
 	"strings"
@@ -47,6 +48,39 @@ func VerifyOnboardingToken() gin.HandlerFunc {
 			return
 		}
 		c.Set("associateID", associateID.String())
+		c.Next()
+	}
+}
+
+func VerifyInvite() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.Param("token")
+		if tokenString == "" {
+			utils.SendErrorResponse(c, http.StatusBadRequest, "missing token")
+			c.Abort()
+			return
+		}
+
+		claims, err := utils.VerifyInviteToken(tokenString)
+		if err != nil {
+			utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid or expired invite token")
+			c.Abort()
+			return
+		}
+
+		var invite models.Invite
+		if err := config.DB.First(&invite, "id = ?", claims.InviteID).Error; err != nil {
+			utils.SendErrorResponse(c, http.StatusNotFound, "invite not found")
+			c.Abort()
+			return
+		}
+
+		// Set invite data into context for use by the next handler
+		c.Set("invite_id", invite.ID.String())
+		c.Set("associate_id", invite.AssociateID.String())
+		c.Set("contract_id", invite.ContractID.String())
+		c.Set("status", invite.Status)
+
 		c.Next()
 	}
 }

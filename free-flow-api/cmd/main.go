@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func init() {
@@ -35,6 +36,9 @@ func main() {
 		})
 	})
 
+	// Prometheus metrics endpoint
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	api := r.Group("/api/v1")
 	{
 		routes.RegisterUserRouter(api)
@@ -51,6 +55,7 @@ func main() {
 		routes.RegisterMilestoneRouter(api)
 		routes.RegisterContractRouter(api)
 		routes.RegisterOnboardingRouter(api)
+		routes.RegisterInviteRouter(api)
 	}
 	log.Println("Server is up and runnig")
 	r.Run()

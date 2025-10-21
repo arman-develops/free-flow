@@ -30,8 +30,8 @@ apiClient.interceptors.response.use(
   (error:any) => {
     if (error.response?.status === 401) {
       // Handle unauthorized - redirect to login
-      localStorage.removeItem("associate-token")
-      window.location.href = "/associate/login"
+      useAssociateStore.getState().logout()
+      // window.location.href = "/associate/login"
     }
     return Promise.reject(error)
   },

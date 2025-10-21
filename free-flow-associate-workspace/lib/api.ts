@@ -7,3 +7,11 @@ export const AuthApi = {
         return response.data
     }
 }
+
+export const InviteApi = {
+    getInviteDetails: async (token: string) => {
+        const response = await apiClient.get(`/associate/invite/${token}`)
+        console.log(response.data)
+        return response.data
+    }
+}

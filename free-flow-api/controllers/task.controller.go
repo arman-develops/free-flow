@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"free-flow-api/config"
 	"free-flow-api/models"
 	"free-flow-api/utils"
@@ -196,7 +197,27 @@ func UpdateTask(c *gin.Context) {
 	}
 
 	if updates.AssignedToAssociate != nil {
-		updateMap["assigned_to_associate"] = *updates.AssignedToAssociate
+		associateID := *updates.AssignedToAssociate
+
+		// Fetch related contract for the task
+		var contract models.Contract
+		if err := config.DB.First(&contract, "task_id = ?", task.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				tx.Rollback()
+				utils.SendErrorResponse(c, http.StatusNotFound, "No contract found for this task. Cannot send invite.")
+				return
+			}
+			tx.Rollback()
+			utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch contract")
+			return
+		}
+
+		// Create invite
+		if err := InviteAssociate(task, associateID, contract.ID); err != nil {
+			tx.Rollback()
+			utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to create invite")
+			return
+		}
 	} else {
 		updateMap["assigned_to_associate"] = nil
 	}

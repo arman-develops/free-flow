@@ -37,6 +37,7 @@ export default function ContractModal({ isOpen, onClose, taskId, contract_metada
     project_id: projectID,
     task_id: taskId,
     role: '',
+    description: '',
     responsibilities: [''],
     timeline_notes: '',
     effort: '',
@@ -94,6 +95,7 @@ export default function ContractModal({ isOpen, onClose, taskId, contract_metada
         project_id: projectID,
         task_id: taskId,
         role: '',
+        description: '',
         responsibilities: [''],
         timeline_notes: '',
         effort: '',
@@ -264,6 +266,21 @@ export default function ContractModal({ isOpen, onClose, taskId, contract_metada
               minute: '2-digit'
             })}
           </p>
+          {isViewMode ? (
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {contract?.description || "No description provided"}
+            </p>
+          ) : (
+            <Textarea
+              id="description"
+              value={contract?.description}
+              onChange={(e) => setContract(prev => ({ ...prev, timeline_notes: e.target.value }))}
+              placeholder="Any additional timeline considerations or milestones"
+              rows={2}
+              className="resize-none"
+              disabled={isSaving}
+            />
+          )}
         </DialogHeader>
 
         <div className="space-y-6 py-4">

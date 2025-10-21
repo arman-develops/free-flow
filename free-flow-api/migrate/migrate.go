@@ -26,6 +26,7 @@ func main() {
 		&models.Milestone{},
 		&models.AssociateProfile{},
 		&models.Contract{},
+		&models.Invite{},
 	); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}

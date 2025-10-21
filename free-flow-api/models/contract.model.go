@@ -17,6 +17,10 @@ type Contract struct {
 	TaskID    uuid.UUID `json:"task_id" gorm:"index"`
 	ProjectID uuid.UUID `json:"project_id"`
 
+	Description     string `json:"description"`
+	Confidentiality string `json:"confidentiality"`
+	Ownership       string `json:"ownership"`
+
 	Role             string         `json:"role"`
 	Responsibilities pq.StringArray `json:"responsibilities" gorm:"type:text[]"`
 	Deliverables     pq.StringArray `json:"deliverables" gorm:"type:text[]"`

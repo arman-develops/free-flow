@@ -15,6 +15,9 @@ import (
 
 type ContractInput struct {
 	Role             string    `json:"role" binding:"required"`
+	Description      string    `json:"description"`
+	Confidentiality  string    `json:"confidentiality"`
+	Ownership        string    `json:"ownership"`
 	Responsibilities []string  `json:"responsibilities"`
 	Effort           string    `json:"effort"`
 	Deliverables     []string  `json:"deliverables"`
@@ -45,6 +48,9 @@ func CreateContract(c *gin.Context) {
 
 	contract := models.Contract{
 		Role:             input.Role,
+		Description:      input.Description,
+		Ownership:        input.Ownership,
+		Confidentiality:  input.Confidentiality,
 		Responsibilities: input.Responsibilities,
 		Effort:           input.Effort,
 		Deliverables:     input.Deliverables,
@@ -241,6 +247,15 @@ func UpdateContract(c *gin.Context) {
 	// Update fields if provided
 	if input.Role != "" {
 		contract.Role = input.Role
+	}
+	if input.Description != "" {
+		contract.Description = input.Description
+	}
+	if input.Ownership != "" {
+		contract.Ownership = input.Ownership
+	}
+	if input.Confidentiality != "" {
+		contract.Confidentiality = input.Confidentiality
 	}
 	if len(input.Responsibilities) > 0 {
 		contract.Responsibilities = input.Responsibilities

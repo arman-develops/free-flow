@@ -373,6 +373,26 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                             {task.milestone}
                           </Badge>
                         )}
+                          {contractQuery.isLoading ? (
+                            <Badge variant="outline">Checking...</Badge>
+                          ) : hasContract ? (
+                            <Badge 
+                              className="bg-green-100 text-green-800 border-green-200" 
+                              onClick={
+                                (e) => {
+                                  e.stopPropagation()
+                                  openContract(task)
+                                }        
+                              }
+                            >
+                              <FileText />
+                              Contract Available
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-600 border-gray-200">
+                              No Contract
+                            </Badge>
+                          )}
                       </div>
 
                       {/* Footer Info */}
@@ -397,28 +417,6 @@ export function EnhancedTasksView({ tasks, onTaskClick, isLoading }: EnhancedTas
                         )}
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-2 flex items-center gap-4">
-                    {contractQuery.isLoading ? (
-                      <Badge variant="outline">Checking...</Badge>
-                    ) : hasContract ? (
-                      <Badge 
-                        className="bg-green-100 text-green-800 border-green-200" 
-                        onClick={
-                          (e) => {
-                            e.stopPropagation()
-                            openContract(task)
-                          }        
-                        }
-                      >
-                        <FileText />
-                        Contract Available
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-gray-100 text-gray-600 border-gray-200">
-                        No Contract
-                      </Badge>
-                    )}
                   </div>
                 </CardContent>
               </Card>

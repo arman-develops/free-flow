@@ -3,6 +3,7 @@ export interface Contract {
   project_id: string,
   task_id: string
   role: string
+  description: string
   responsibilities: string[]
   deliverables: string[]
   effort: string
