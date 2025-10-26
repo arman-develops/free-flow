@@ -12,6 +12,12 @@ func RegisterInviteRouter(rg *gin.RouterGroup) {
 	invite.Use(middleware.VerifyInvite())
 	{
 		invite.GET("/:token", controllers.GetInviteDetails)
-		invite.POST("/invite/response/:token", controllers.InviteResponse)
+		invite.POST("/response/:token", controllers.InviteResponse)
+	}
+
+	user_view := rg.Group("/project/:id")
+	user_view.Use(middleware.VerifyToken())
+	{
+		user_view.GET("invites/", controllers.GetInvitesByProjectID)
 	}
 }

@@ -10,9 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, FileText, User, Clock, Plus, X, Save, Edit2, Eye, Loader2, FileX } from 'lucide-react';
 import { Contract } from '@/types/contract';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/axios-config';
 import { contractApi } from '@/lib/api';
 import { useParams } from 'next/navigation';
+import { validatePaymentTerms } from '@/utils/parse-payment-terms';
 
 interface ContractModalProps {
     isOpen: boolean
@@ -32,7 +32,7 @@ export default function ContractModal({ isOpen, onClose, taskId, contract_metada
 
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<'view' | 'edit' | 'create'>('view');
-  const [contract, setContract] = useState<Contract>({
+  const [contract, setContract] = useState({
     id: '',
     project_id: projectID,
     task_id: taskId,
@@ -533,25 +533,51 @@ export default function ContractModal({ isOpen, onClose, taskId, contract_metada
               )}
             </div>
           </div>
-
+          
           {/* Payment Terms Section */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Payment Terms</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="payment_terms">Terms & Conditions</Label>
+
               {isViewMode ? (
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{contract.payment_terms || 'Not specified'}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {contract.payment_terms || "Not specified"}
+                </p>
               ) : (
-                <Textarea
-                  id="payment_terms"
-                  value={contract.payment_terms}
-                  onChange={(e) => setContract(prev => ({ ...prev, payment_terms: e.target.value }))}
-                  placeholder="Specify payment schedule, rates, and conditions"
-                  rows={3}
-                  className="resize-none"
-                  disabled={isSaving}
-                />
+                <>
+                  <Textarea
+                    id="payment_terms"
+                    value={contract.payment_terms}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setContract((prev) => ({ ...prev, payment_terms: value }))
+                    }}
+                    placeholder="Example: type:fixed;amount:1200;currency:KES;paymentSchedule:Upon project completion"
+                    rows={3}
+                    className={`resize-none border ${
+                      validatePaymentTerms(contract.payment_terms)
+                        ? "border-green-500"
+                        : "border-red-500"
+                    }`}
+                    disabled={isSaving}
+                  />
+
+                  <p className="text-xs text-gray-500">
+                    <strong>Format:</strong>{" "}
+                    <code>type:[hourly|fixed|milestone]; rate/amount:[number]; currency:[code]; paymentSchedule:[description]</code>
+                    <br />
+                    <strong>Example:</strong>{" "}
+                    <code>type:fixed;amount:1200;currency:KES;paymentSchedule:Upon project completion</code>
+                  </p>
+
+                  {!validatePaymentTerms(contract.payment_terms) && contract.payment_terms && (
+                    <p className="text-xs text-red-600">
+                      Invalid format. Ensure all required fields follow the pattern <code>key:value</code> and are separated by semicolons.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>

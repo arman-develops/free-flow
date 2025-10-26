@@ -42,6 +42,7 @@ import { DetailPanel } from "@/components/dashboard/details-panel"
 import { EnhancedTasksView } from "@/components/dashboard/enhanced-tasks-view"
 import { MilestonesView } from "@/components/dashboard/milestones-view"
 import AssociatesAssignedView from "@/components/dashboard/associates-assigned-view"
+import InvitesView from "@/components/dashboard/invites-view"
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -358,9 +359,9 @@ export default function ProjectDetailPage() {
               <UserCheck className="h4 w-4" />
               Associates
             </TabsTrigger>
-            <TabsTrigger value="contracts" className="flex items-center gap-2">
+            <TabsTrigger value="invites" className="flex items-center gap-2">
               <FileText className="h4 w-4" />
-              Contracts
+              Invites
             </TabsTrigger>
           </TabsList>
 
@@ -451,6 +452,9 @@ export default function ProjectDetailPage() {
         </TabsContent>
         <TabsContent value="associates" className="space-y-4">
           <AssociatesAssignedView projectID={projectId} projectCurrency={project?.data?.currency} />
+        </TabsContent>
+        <TabsContent value="invites" className="space-y-4">
+          <InvitesView projectID={projectId} />
         </TabsContent>
       </Tabs>
     </div>

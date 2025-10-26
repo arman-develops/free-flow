@@ -26,7 +26,13 @@ export interface Contract {
     description?: string
   }
   timeline_notes?: string
-  payment_terms?: string
+  payment_terms: {
+    type: "hourly" | "fixed" | "milestone"
+    rate?: number
+    amount?: number
+    currency: string
+    paymentSchedule: string
+  }
 }
 
 export interface Contracts {

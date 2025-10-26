@@ -343,3 +343,10 @@ export const contractApi = {
     return response.data
   }
 }
+
+export const invitesApi = {
+  invitesByProjectID: async (projectID: string) => {
+    const response = await apiClient(`project/${projectID}/invites/`)
+    return response.data
+  }
+}

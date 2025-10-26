@@ -11,7 +11,11 @@ export const AuthApi = {
 export const InviteApi = {
     getInviteDetails: async (token: string) => {
         const response = await apiClient.get(`/associate/invite/${token}`)
-        console.log(response.data)
+        return response.data
+    },
+
+    inviteResponse: async(token:string, data:any) => {
+        const response = await apiClient.post(`/associate/invite/response/${token}`, data)
         return response.data
     }
 }

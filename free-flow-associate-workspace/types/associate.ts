@@ -31,13 +31,13 @@ export interface Associate {
 
 // Contract & Task Invite Types
 export interface Contract {
-  id: string
-  associateId: string
-  freelancerId: string
-  freelancerName: string
+  id?: string
+  associateId?: string
+  freelancerId?: string
+  freelancerName?: string
   freelancerCompany?: string
-  title: string
-  description: string
+  title?: string
+  description?: string
   paymentTerms: {
     type: "hourly" | "fixed" | "milestone"
     rate?: number
@@ -45,20 +45,20 @@ export interface Contract {
     currency: string
     paymentSchedule: string
   }
-  confidentialityClause: string
-  ownershipClause: string
+  confidentialityClause?: string
+  ownershipClause?: string
   startDate: string
   endDate?: string
-  status: "pending" | "accepted" | "declined" | "expired"
+  status?: "pending" | "accepted" | "declined" | "expired"
   acceptedAt?: string
   declinedAt?: string
   createdAt: string
 }
 
 export interface TaskInvite {
-  id: string
-  contractId: string
-  projectId: string
+  id?: string
+  contractId?: string
+  projectId?: string
   projectName: string
   clientName: string
   role: string
@@ -66,7 +66,7 @@ export interface TaskInvite {
   estimatedHours?: number
   deadline?: string
   priority: "low" | "medium" | "high" | "urgent"
-  status: "pending" | "accepted" | "declined"
+  status?: "pending" | "accepted" | "declined"
   acceptedAt?: string
   declinedAt?: string
   createdAt: string

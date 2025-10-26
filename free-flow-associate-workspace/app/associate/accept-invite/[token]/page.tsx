@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api-client"
 import { ContractPanel } from "@/components/associate/contract-panel"
 import { TaskInvitePanel } from "@/components/associate/task-invite-panel"
 import { Loader2 } from "lucide-react"
 import type { Contract, TaskInvite } from "@/types/associate"
 import { InviteApi } from "@/lib/api"
-
-interface InviteData {
-  contract: Contract
-  taskInvite: TaskInvite
-}
+import { parsePaymentTerms } from '@/utils/parse-payment-terms';
 
 export default function AcceptInvitePage() {
   const params = useParams()
@@ -27,15 +23,27 @@ export default function AcceptInvitePage() {
     taskAccepted: false,
   })
 
-  const { data, isLoading, error } = useQuery<InviteData>({
+  const { data:inviteData, isLoading, error } = useQuery({
     queryKey: ["invite_details"],
     queryFn: () => InviteApi.getInviteDetails(token)
   })
 
+  const inviteMutation = useMutation({
+    mutationFn: ({token, data}: {token: string, data: {}}) => InviteApi.inviteResponse(token, data),
+    onSuccess: () => {
+      router.push(`/associate/dashboard`)
+    },
+    onError: (err) => {
+      console.error("Failed to update invite response", err)
+    },
+  })
+
   useEffect(() => {
     if (acceptanceState.contractAccepted && acceptanceState.taskAccepted) {
-      // Both accepted, proceed to onboarding
-      router.push(`/associate/onboarding/${token}`)
+      const data = {
+        status: "accepted"
+      }
+      inviteMutation.mutate({token, data})
     }
   }, [acceptanceState, router, token])
 
@@ -50,7 +58,7 @@ export default function AcceptInvitePage() {
     )
   }
 
-  if (error || !data) {
+  if (error || !inviteData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-4">
@@ -65,6 +73,31 @@ export default function AcceptInvitePage() {
       </div>
     )
   }
+
+  const data = inviteData?.data
+
+  const inviteDetails = {
+    contract: {
+      title: `${data.contract.role} — ${data.project.name}`,
+      description: data.contract.description,
+      startDate: data.contract.start_date,
+      endDate: data.contract.end_date,
+      paymentTerms: parsePaymentTerms(data.contract.payment_terms),
+      confidentialityClause: data.contract.confidentiality || "None provided.",
+      ownershipClause: data.contract.ownership || "None provided.",
+      createdAt: data.contract.timestamp,
+    },
+    taskInvite: {
+      projectName: data.project.name,
+      clientName: `${data.freelancer.first_name} ${data.freelancer.last_name}`,
+      role: data.contract.role,
+      responsibilities: data.contract.responsibilities,
+      estimatedHours: data.task.estimated_hours,
+      deadline: data.task.due_date,
+      priority: data.task.priority,
+      createdAt: data.task.created_at,
+    },
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,7 +124,7 @@ export default function AcceptInvitePage() {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Left: Contract */}
           <ContractPanel
-            contract={data.contract}
+            contract={inviteDetails.contract}
             onAccept={() => setAcceptanceState((prev) => ({ ...prev, contractAccepted: true }))}
             onDecline={() => router.push("/associate/declined")}
             isAccepted={acceptanceState.contractAccepted}
@@ -99,7 +132,7 @@ export default function AcceptInvitePage() {
 
           {/* Right: Task Invite */}
           <TaskInvitePanel
-            taskInvite={data.taskInvite}
+            taskInvite={inviteDetails.taskInvite}
             onAccept={() => setAcceptanceState((prev) => ({ ...prev, taskAccepted: true }))}
             onDecline={() => router.push("/associate/declined")}
             isAccepted={acceptanceState.taskAccepted}

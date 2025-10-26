@@ -41,11 +41,23 @@ func InviteAssociate(task models.Task, associateID uuid.UUID, contractID uuid.UU
 }
 
 func InviteResponse(c *gin.Context) {
-	userID := c.GetString("associateID")
+	// Extract and validate associate ID (from middleware)
+	userID := c.GetString("associate_id")
 	inviteID := c.GetString("invite_id")
 
-	if !utils.IsAuthenticated(userID) {
-		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+	if userID == "" {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid or missing token")
+		return
+	}
+
+	_, err := uuid.Parse(userID)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid associate ID format")
+		return
+	}
+
+	if inviteID == "" {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "missing invite id")
 		return
 	}
 
@@ -189,4 +201,116 @@ func GetInviteDetails(c *gin.Context) {
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, response)
+}
+
+func GetInvitesByProjectID(c *gin.Context) {
+	projectID := c.Param("id")
+	userID := c.GetString("userID")
+
+	if !utils.IsAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		return
+	}
+
+	var invites []models.Invite
+	if err := config.DB.
+		Preload("Associate").
+		Preload("Task").
+		Preload("Contract").
+		Where("project_id = ?", projectID).
+		Find(&invites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch invites"})
+		return
+	}
+
+	type CleanInvite struct {
+		ID          uuid.UUID `json:"id"`
+		Status      string    `json:"status"`
+		RespondedAt time.Time `json:"responded_at"`
+		Associate   struct {
+			ID     uuid.UUID `json:"id"`
+			Name   string    `json:"name"`
+			Email  string    `json:"email"`
+			Phone  string    `json:"phone"`
+			Status string    `json:"status"`
+			Skills []string  `json:"skills"`
+		} `json:"associate"`
+		Task struct {
+			ID             uuid.UUID `json:"id"`
+			Title          string    `json:"title"`
+			Description    string    `json:"description"`
+			Status         string    `json:"status"`
+			Priority       string    `json:"priority"`
+			EstimatedHours int       `json:"estimated_hours"`
+		} `json:"task"`
+		Contract struct {
+			ID           uuid.UUID `json:"id"`
+			Role         string    `json:"role"`
+			StartDate    time.Time `json:"start_date"`
+			EndDate      time.Time `json:"end_date"`
+			Effort       string    `json:"effort"`
+			PaymentTerms string    `json:"payment_terms"`
+		} `json:"contract"`
+	}
+
+	var cleanInvites []CleanInvite
+	for _, inv := range invites {
+		cleanInv := CleanInvite{
+			ID:          inv.ID,
+			Status:      inv.Status,
+			RespondedAt: inv.RespondedAt,
+		}
+
+		cleanInv.Associate = struct {
+			ID     uuid.UUID `json:"id"`
+			Name   string    `json:"name"`
+			Email  string    `json:"email"`
+			Phone  string    `json:"phone"`
+			Status string    `json:"status"`
+			Skills []string  `json:"skills"`
+		}{
+			ID:     inv.Associate.ID,
+			Name:   inv.Associate.Name,
+			Email:  inv.Associate.Email,
+			Phone:  inv.Associate.Phone,
+			Status: inv.Associate.Status,
+			Skills: inv.Associate.Skills,
+		}
+
+		cleanInv.Task = struct {
+			ID             uuid.UUID `json:"id"`
+			Title          string    `json:"title"`
+			Description    string    `json:"description"`
+			Status         string    `json:"status"`
+			Priority       string    `json:"priority"`
+			EstimatedHours int       `json:"estimated_hours"`
+		}{
+			ID:             inv.Task.ID,
+			Title:          inv.Task.Title,
+			Description:    inv.Task.Description,
+			Status:         string(inv.Task.Status),
+			Priority:       inv.Task.Priority,
+			EstimatedHours: int(inv.Task.EstimatedHours),
+		}
+
+		cleanInv.Contract = struct {
+			ID           uuid.UUID `json:"id"`
+			Role         string    `json:"role"`
+			StartDate    time.Time `json:"start_date"`
+			EndDate      time.Time `json:"end_date"`
+			Effort       string    `json:"effort"`
+			PaymentTerms string    `json:"payment_terms"`
+		}{
+			ID:           inv.Contract.ID,
+			Role:         inv.Contract.Role,
+			StartDate:    inv.Contract.StartDate,
+			EndDate:      inv.Contract.EndDate,
+			Effort:       inv.Contract.Effort,
+			PaymentTerms: inv.Contract.PaymentTerms,
+		}
+
+		cleanInvites = append(cleanInvites, cleanInv)
+	}
+
+	c.JSON(http.StatusOK, cleanInvites)
 }
