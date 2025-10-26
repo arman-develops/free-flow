@@ -6,10 +6,21 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api-client"
 import { ContractPanel } from "@/components/associate/contract-panel"
 import { TaskInvitePanel } from "@/components/associate/task-invite-panel"
-import { Loader2 } from "lucide-react"
+import { Loader2, XCircle, AlertTriangle } from "lucide-react"
 import type { Contract, TaskInvite } from "@/types/associate"
 import { InviteApi } from "@/lib/api"
-import { parsePaymentTerms } from '@/utils/parse-payment-terms';
+import { parsePaymentTerms } from '@/utils/parse-payment-terms'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 
 export default function AcceptInvitePage() {
   const params = useParams()
@@ -22,16 +33,22 @@ export default function AcceptInvitePage() {
     contractAccepted: false,
     taskAccepted: false,
   })
+  const [showDeclineDialog, setShowDeclineDialog] = useState(false)
 
-  const { data:inviteData, isLoading, error } = useQuery({
+  const { data: inviteData, isLoading, error } = useQuery({
     queryKey: ["invite_details"],
     queryFn: () => InviteApi.getInviteDetails(token)
   })
 
   const inviteMutation = useMutation({
-    mutationFn: ({token, data}: {token: string, data: {}}) => InviteApi.inviteResponse(token, data),
-    onSuccess: () => {
-      router.push(`/associate/dashboard`)
+    mutationFn: ({ token, data }: { token: string, data: {} }) => InviteApi.inviteResponse(token, data),
+    onSuccess: (data, variables: any) => {
+      if (variables.data.status === "declined") {
+        // Show success message or redirect to declined page
+        router.push(`/associate/declined`)
+      } else {
+        router.push(`/associate/dashboard`)
+      }
     },
     onError: (err) => {
       console.error("Failed to update invite response", err)
@@ -43,9 +60,22 @@ export default function AcceptInvitePage() {
       const data = {
         status: "accepted"
       }
-      inviteMutation.mutate({token, data})
+      inviteMutation.mutate({ token, data })
     }
   }, [acceptanceState, router, token])
+
+  const handleDecline = () => {
+    setShowDeclineDialog(true)
+  }
+
+  const confirmDecline = () => {
+    const data = {
+      status: "declined"
+    }
+    inviteMutation.mutate({ token, data })
+    setShowDeclineDialog(false)
+    router.push("/associate/declined")
+  }
 
   if (isLoading) {
     return (
@@ -97,7 +127,7 @@ export default function AcceptInvitePage() {
       priority: data.task.priority,
       createdAt: data.task.created_at,
     },
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,7 +156,7 @@ export default function AcceptInvitePage() {
           <ContractPanel
             contract={inviteDetails.contract}
             onAccept={() => setAcceptanceState((prev) => ({ ...prev, contractAccepted: true }))}
-            onDecline={() => router.push("/associate/declined")}
+            onDecline={handleDecline}
             isAccepted={acceptanceState.contractAccepted}
           />
 
@@ -134,12 +164,53 @@ export default function AcceptInvitePage() {
           <TaskInvitePanel
             taskInvite={inviteDetails.taskInvite}
             onAccept={() => setAcceptanceState((prev) => ({ ...prev, taskAccepted: true }))}
-            onDecline={() => router.push("/associate/declined")}
+            onDecline={handleDecline}
             isAccepted={acceptanceState.taskAccepted}
             disabled={!acceptanceState.contractAccepted}
           />
         </div>
       </div>
+
+      {/* Decline Confirmation Dialog */}
+      <AlertDialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-500" />
+              </div>
+              <AlertDialogTitle className="text-xl">Decline Invitation?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              Are you sure you want to decline this invitation for <span className="font-semibold text-foreground">{inviteDetails.taskInvite.projectName}</span>?
+              <br /><br />
+              This action cannot be undone. The freelancer will be notified of your decision, and you won't be able to accept this invitation later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="mt-0">
+              Go Back
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDecline}
+              disabled={inviteMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {inviteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Declining...
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Yes, Decline
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

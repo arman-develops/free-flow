@@ -80,7 +80,7 @@ export function ContractPanel({ contract, onAccept, onDecline, isAccepted }: Con
 
   return (
     <Card className="h-fit lg:sticky lg:top-6 shadow-lg border-2">
-      <CardHeader className="">
+      <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
@@ -343,7 +343,7 @@ export function ContractPanel({ contract, onAccept, onDecline, isAccepted }: Con
               )}
             </Button>
             <Button
-              className="flex-1 bg-blue-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
               onClick={handleAccept}
               disabled={isAccepting || isDeclining}
             >
