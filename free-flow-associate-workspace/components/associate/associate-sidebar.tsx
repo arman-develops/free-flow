@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 const navigation = [
   { name: "Overview", href: "/associate/dashboard", icon: LayoutDashboard },
-  { name: "Tasks", href: "/associate/dashboard/tasks", icon: CheckSquare },
+  { name: "Workspace", href: "/associate/dashboard/tasks", icon: CheckSquare },
   { name: "Projects", href: "/associate/dashboard/projects", icon: FolderKanban },
   { name: "Time Tracking", href: "/associate/dashboard/time", icon: Clock },
   { name: "Finances", href: "/associate/dashboard/finances", icon: DollarSign },

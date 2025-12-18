@@ -18,3 +18,15 @@ func IsAuthenticated(userID string) bool {
 	}
 	return true
 }
+
+func IsAssociateAuthenticated(associateID string) bool {
+	parsed, err := uuid.Parse(associateID)
+	if err != nil {
+		return false
+	}
+	var associate models.AssociateProfile
+	if err := config.DB.First(&associate, "associate_id = ?", parsed).Error; err != nil {
+		return false
+	}
+	return true
+}

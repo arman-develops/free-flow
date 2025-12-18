@@ -18,4 +18,10 @@ func RegisterTaskRouter(rg *gin.RouterGroup) {
 		task.PUT("/:id", controllers.UpdateTask)
 		task.DELETE("/:id", controllers.DeleteTask)
 	}
+
+	associate := rg.Group("/associate")
+	associate.Use(middleware.VerifyToken())
+	{
+		associate.GET("/tasks", controllers.GetAllTasksByAssociateID)
+	}
 }

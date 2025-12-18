@@ -46,11 +46,13 @@ type Task struct {
 
 	// Assignment (for outsourced work)
 	AssignedToAssociate *uuid.UUID `json:"assigned_to_associate"` // Foreign key to Associate
+	CreatedBy           uuid.UUID  `json:"created_by" gorm:"not null"`
 
 	// Relationships
-	Milestone *Milestone `json:"milestone,omitempty" gorm:"foreignKey:MilestoneID"`
-	Project   Project    `json:"project" gorm:"foreignKey:ProjectID"`
-	Associate *Associate `json:"assigned_associate" gorm:"foreignKey:AssignedToAssociate"`
+	Milestone  *Milestone `json:"milestone,omitempty" gorm:"foreignKey:MilestoneID"`
+	Project    Project    `json:"project" gorm:"foreignKey:ProjectID"`
+	Associate  *Associate `json:"assigned_associate" gorm:"foreignKey:AssignedToAssociate"`
+	Freelancer *User      `json:"freelancer" gorm:"foreignKey:CreatedBy"`
 }
 
 func (u *Task) BeforeCreate(tx *gorm.DB) (err error) {

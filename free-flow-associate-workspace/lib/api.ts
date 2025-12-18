@@ -19,3 +19,10 @@ export const InviteApi = {
         return response.data
     }
 }
+
+export const tasksApi = {
+    getTasks: async () => {
+        const response = await apiClient.get("/associate/tasks")
+        return response.data
+    }
+}

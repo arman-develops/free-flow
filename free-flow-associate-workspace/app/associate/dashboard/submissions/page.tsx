@@ -26,8 +26,8 @@ export default function SubmissionsPage() {
   const { data: submissions, isLoading } = useQuery<Submission[]>({
     queryKey: ["submissions"],
     queryFn: async () => {
-      const response = await apiClient.get("/associate/submissions")
-      return response.data
+      const response = {}
+      return response?.data
     },
   })
 

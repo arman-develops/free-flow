@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { apiClient } from "@/lib/api-client"
 import { useTaskStore } from "@/stores/task-store"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,22 +9,30 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TaskCard } from "@/components/associate/task-card"
 import { TaskFilters } from "@/components/associate/task-filters"
+import { TaskDetailPanel } from "@/components/associate/task-detail-panel"
 import { TimeTracker } from "@/components/associate/time-tracker"
-import { Search, Filter, Loader2, AlertCircle, Play } from "lucide-react"
+import { Search, Filter, Loader2, AlertCircle } from "lucide-react"
 import type { Task } from "@/types/associate"
+import { tasksApi } from "@/lib/api"
+import { mapTasksResponse } from "@/utils/map-tasks"
 
 export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showFilters, setShowFilters] = useState(false)
-  const { tasks, setTasks, statusFilter, priorityFilter, projectFilter, activeTimeEntry } = useTaskStore()
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const { tasks, statusFilter, priorityFilter, projectFilter, activeTimeEntry } = useTaskStore()
+  const setTasks = useTaskStore((state) => state.setTasks)
 
-  const { data, isLoading } = useQuery<Task[]>({
-    queryKey: ["tasks"],
-    queryFn: async () => {
-      const response = await apiClient.get("/associate/tasks")
-      return response.data
-    },
+  const { data: tasksResponse, isLoading } = useQuery({
+    queryKey: ["associate_tasks"],
+    queryFn: tasksApi.getTasks
   })
+  
+  useEffect(() => {
+    setTasks(mapTasksResponse(tasksResponse?.success ? tasksResponse.data : []))
+  }, [tasksResponse, setTasks])
+
+  console.log(tasks)
 
   // Filter tasks
   const filteredTasks = tasks.filter((task) => {
@@ -42,7 +49,7 @@ export default function TasksPage() {
   })
 
   const todoTasks = filteredTasks.filter((t) => t.status === "todo")
-  const inProgressTasks = filteredTasks.filter((t) => t.status === "in-progress")
+  const inProgressTasks = filteredTasks.filter((t) => t.status === "in_progress")
   const reviewTasks = filteredTasks.filter((t) => t.status === "review")
   const completedTasks = filteredTasks.filter((t) => t.status === "completed")
   const blockedTasks = filteredTasks.filter((t) => t.status === "blocked")
@@ -64,12 +71,9 @@ export default function TasksPage() {
           <p className="text-muted-foreground mt-1">Manage and track your assigned tasks</p>
         </div>
         {activeTimeEntry && (
-          <Button variant="outline" className="gap-2 bg-transparent" asChild>
-            <div className="cursor-pointer">
-              <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-              <Play className="h-4 w-4" />
-              Timer Running
-            </div>
+          <Button variant="outline" className="gap-2 bg-transparent">
+            <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+            Timer Running
           </Button>
         )}
       </div>
@@ -116,58 +120,52 @@ export default function TasksPage() {
         </CardContent>
       </Card>
 
-      {/* Tasks Tabs */}
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">
-            All <span className="ml-1.5 text-xs text-muted-foreground">({filteredTasks.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="todo">
-            To Do <span className="ml-1.5 text-xs text-muted-foreground">({todoTasks.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="in-progress">
-            In Progress <span className="ml-1.5 text-xs text-muted-foreground">({inProgressTasks.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="review">
-            Review <span className="ml-1.5 text-xs text-muted-foreground">({reviewTasks.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed <span className="ml-1.5 text-xs text-muted-foreground">({completedTasks.length})</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[600px]">
+        {/* Tasks List */}
+        <div className="lg:col-span-1">
+          <Tabs defaultValue="all" className="space-y-4">
+            <TabsList className="w-full">
+              <TabsTrigger value="all" className="flex-1">
+                All <span className="ml-1 text-xs">({filteredTasks.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="active" className="flex-1">
+                Active <span className="ml-1 text-xs">({inProgressTasks.length})</span>
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="all" className="space-y-3">
-          {filteredTasks.length > 0 ? (
-            filteredTasks.map((task) => <TaskCard key={task.id} task={task} />)
-          ) : (
-            <EmptyState />
-          )}
-        </TabsContent>
+            <TabsContent value="all" className="space-y-2 m-0">
+              {filteredTasks.length > 0 ? (
+                filteredTasks.map((task) => (
+                  <div key={task.id} onClick={() => setSelectedTask(task)} className="cursor-pointer transition-all">
+                    <TaskCard task={task} isSelected={selectedTask?.id === task.id} />
+                  </div>
+                ))
+              ) : (
+                <EmptyState />
+              )}
+            </TabsContent>
 
-        <TabsContent value="todo" className="space-y-3">
-          {todoTasks.length > 0 ? todoTasks.map((task) => <TaskCard key={task.id} task={task} />) : <EmptyState />}
-        </TabsContent>
+            <TabsContent value="active" className="space-y-2 m-0">
+              {inProgressTasks.length > 0 ? (
+                inProgressTasks.map((task) => (
+                  <div key={task.id} onClick={() => setSelectedTask(task)} className="cursor-pointer transition-all">
+                    <TaskCard task={task} isSelected={selectedTask?.id === task.id} />
+                  </div>
+                ))
+              ) : (
+                <EmptyState />
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        <TabsContent value="in-progress" className="space-y-3">
-          {inProgressTasks.length > 0 ? (
-            inProgressTasks.map((task) => <TaskCard key={task.id} task={task} />)
-          ) : (
-            <EmptyState />
-          )}
-        </TabsContent>
-
-        <TabsContent value="review" className="space-y-3">
-          {reviewTasks.length > 0 ? reviewTasks.map((task) => <TaskCard key={task.id} task={task} />) : <EmptyState />}
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-3">
-          {completedTasks.length > 0 ? (
-            completedTasks.map((task) => <TaskCard key={task.id} task={task} />)
-          ) : (
-            <EmptyState />
-          )}
-        </TabsContent>
-      </Tabs>
+        {/* Task Detail Panel */}
+        <div className="lg:col-span-2 hidden lg:block">
+          <Card className="h-full flex flex-col">
+            <TaskDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} />
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
@@ -175,10 +173,10 @@ export default function TasksPage() {
 function EmptyState() {
   return (
     <Card>
-      <CardContent className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-1">No tasks found</h3>
-        <p className="text-sm text-muted-foreground">Try adjusting your filters or search query</p>
+      <CardContent className="flex flex-col items-center justify-center py-8">
+        <AlertCircle className="h-10 w-10 text-muted-foreground mb-3" />
+        <h3 className="text-sm font-medium text-foreground mb-1">No tasks found</h3>
+        <p className="text-xs text-muted-foreground">Try adjusting your filters or search query</p>
       </CardContent>
     </Card>
   )

@@ -80,7 +80,7 @@ export interface Task {
   clientName: string
   title: string
   description: string
-  status: "todo" | "in-progress" | "review" | "completed" | "blocked"
+  status: "todo" | "in_progress" | "review" | "completed" | "blocked"
   priority: "low" | "medium" | "high" | "urgent"
   assignedBy: string
   dueDate?: string

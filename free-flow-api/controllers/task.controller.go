@@ -62,6 +62,7 @@ func NewTask(c *gin.Context) {
 		EstimatedHours:      input.EstimatedHours,
 		AssignedToAssociate: input.AssignedToAssociate,
 		ProjectID:           input.ProjectID,
+		CreatedBy:           uuid.MustParse(userID),
 	}
 
 	if err := config.DB.Create(&task).Error; err != nil {
@@ -302,4 +303,37 @@ func DeleteTask(c *gin.Context) {
 	}
 
 	utils.SendSuccessResponse(c, http.StatusOK, data)
+}
+
+func GetAllTasksByAssociateID(c *gin.Context) {
+	//validate jwt token
+	userID := c.GetString("userID")
+	if userID == "" {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid or missing token")
+		return
+	}
+
+	if !utils.IsAssociateAuthenticated(userID) {
+		utils.SendErrorResponse(c, http.StatusUnauthorized, "invalid user token")
+		c.Abort()
+		return
+	}
+
+	associateID, err := uuid.Parse(userID)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "invalid associate ID format")
+		return
+	}
+
+	var allTasks []models.Task
+	if err := config.DB.
+		Preload("Project").
+		Preload("Freelancer").
+		Find(&allTasks, "assigned_to_associate = ?", associateID).Error; err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Tasks Not Found")
+		c.Abort()
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusOK, allTasks)
 }
